@@ -458,6 +458,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # FOR EXE:
+      # if sys.platform == "win32":
+      #   multiprocessing.freeze_support() 
     # Set sharing strategy for multiprocessing
     multiprocessing.set_start_method('spawn', force=True)
     main()

@@ -15,7 +15,6 @@ import logging
 from dataclasses import dataclass
 from contextlib import contextmanager
 import json
-import settings
 
 import tempfile
 import pdfminer.high_level
@@ -27,6 +26,10 @@ from pdf2image import convert_from_path
 from docx import Document
 import magic
 import win32com.client
+import argparse
+
+
+
 
 class TextExtractor:
     def __init__(self, file_path: str):
@@ -273,14 +276,15 @@ class FileInfo:
 
 
 class FileSystemIndexer:
-    PATTERNS = {}
-    with open(settings.patterns_file_path, 'r') as file:
-        data = json.load(file)
-    PATTERNS = data
+    # PATTERNS = {}
+    # with open(settings.patterns_file_path, 'r') as file:
+    #     data = json.load(file)
+    # PATTERNS = data
     CHUNK_SIZE = 8192
 
-    def __init__(self, db_path: str, log_level: int = logging.INFO):
+    def __init__(self, db_path: str, patterns_data: dict ,log_level: int = logging.INFO):
         self.db_path = db_path
+        self.PATTERNS = patterns_data
         self.setup_logging(log_level)
         self.setup_database()
         self.lock = threading.Lock()
@@ -481,22 +485,37 @@ class FileSystemIndexer:
             except sqlite3.Error as e:
                 self.logger.error(f"Database error while updating file info for {file_info.path}: {e}")
 
-    def index_filesystem(self, root_path: str) -> None:
-        self.logger.info(f"Starting indexing of {root_path}")
-        
-        entries = list(self.collect_files(root_path))
-        self.stats['total_files'] = len(entries)
-        self.logger.info(f"Found {self.stats['total_files']} items to process")
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-            futures = [executor.submit(self.process_entry, entry) for entry in entries]
-            
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    future.result()
-                except Exception as e:
-                    self.logger.error(f"Task failed: {e}")
-        
+    def index_filesystem(self, root_paths: list[str]) -> None:
+        self.logger.info(f"Starting indexing of {len(root_paths)} root directories")
+
+        # Dictionary to track per-directory stats
+        self.stats['total_files'] = 0
+        lock = threading.Lock()
+
+        def process_directory(root_path: str):
+            """ Process a single directory using threading """
+            self.logger.info(f"Processing directory: {root_path}")
+
+            entries = list(self.collect_files(root_path))
+            with lock:
+                self.stats['total_files'] += len(entries)
+
+            self.logger.info(f"Found {len(entries)} items in {root_path}")
+
+            # Nested threading for file processing
+            with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+                futures = [executor.submit(self.process_entry, entry) for entry in entries]
+
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        self.logger.error(f"Task failed: {e}")
+
+        # First-level threading: One thread per root directory
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(root_paths), os.cpu_count())) as executor:
+            executor.map(process_directory, root_paths)
+
         self.print_summary()
 
     def process_single_file(self, file_path: str) -> Optional[FileInfo]:
@@ -567,10 +586,21 @@ def main():
     start_time = time.time()
     
     try:
-        db_path = settings.INDEXING_DATABASE
-        target_directory = settings.INDEXING_DIRECTORIES
-        
-        indexer = FileSystemIndexer(db_path)
+        parser = argparse.ArgumentParser(description="Optimized DLP Fingerprinting System")
+        parser.add_argument("-db", "--db_path", required=True, help="db to store indexed data")
+        parser.add_argument("-d", "--directories", required=True, help="directories to scan (LIST)")
+        parser.add_argument("-p", "--patterns", required=True, help="patterns to scan for (DICT)")
+
+        args = parser.parse_args()
+        db_path = args.db_path
+        # target_directory = [r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final",r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\sensitivefiles"]
+        # with open(r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final\patterns.json", 'r') as file:
+        #     data = json.load(file)
+        # patterns = data
+       
+        target_directory = args.directories
+        patterns = args.patterns        
+        indexer = FileSystemIndexer(db_path, patterns)
         indexer.index_filesystem(target_directory)
         
         print(f"\nTotal time taken: {time.time() - start_time:.2f} seconds")

@@ -15,6 +15,7 @@ import logging
 from dataclasses import dataclass
 from contextlib import contextmanager
 import json
+import settings
 
 import tempfile
 import pdfminer.high_level
@@ -273,8 +274,8 @@ class FileInfo:
 
 class FileSystemIndexer:
     PATTERNS = {}
-    with open('patterns.json', 'r') as file:
-        data = json.load(file) 
+    with open(settings.patterns_file_path, 'r') as file:
+        data = json.load(file)
     PATTERNS = data
     CHUNK_SIZE = 8192
 
@@ -498,6 +499,50 @@ class FileSystemIndexer:
         
         self.print_summary()
 
+    def process_single_file(self, file_path: str) -> Optional[FileInfo]:
+        """Process a single file, update database, and detect sensitive data"""
+        try:
+            if not os.path.isfile(file_path):
+                self.logger.error(f"File not found: {file_path}")
+                return None
+
+            stat = os.stat(file_path)
+            file_info = FileInfo(
+                path=file_path,
+                is_directory=False,
+                parent_directory=str(Path(file_path).parent),
+                size=stat.st_size,
+                created_time=datetime.datetime.fromtimestamp(stat.st_ctime),
+                modified_time=datetime.datetime.fromtimestamp(stat.st_mtime),
+                accessed_time=datetime.datetime.fromtimestamp(stat.st_atime)
+            )
+
+            file_info.file_hash = self.calculate_file_hash(file_path)
+            try:
+                file_info.mime_type = magic.from_file(file_path, mime=True)
+            except Exception as e:
+                self.logger.warning(f"Failed to determine mime type for {file_path}: {e}")
+
+            if file_info.mime_type and 'text' in file_info.mime_type:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        sensitive_data, patterns, findings = self.detect_sensitive_data(content)
+                        if sensitive_data:
+                            file_info.has_sensitive_data = True
+                            file_info.sensitive_data = sensitive_data
+                            file_info.patterns = patterns
+                            self.store_sensitive_findings(file_path, findings)
+                except UnicodeDecodeError:
+                    self.logger.debug(f"Unable to decode {file_path} as UTF-8")
+
+            self.update_database(file_info)
+            return file_info
+        except Exception as e:
+            self.logger.error(f"Error processing file {file_path}: {e}")
+            return None
+
+
     def collect_files(self, directory: str) -> List[os.DirEntry]:
         entries = []
         try:
@@ -522,8 +567,8 @@ def main():
     start_time = time.time()
     
     try:
-        db_path = "file_index.db"
-        target_directory = r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\sensitivefiles"
+        db_path = settings.INDEXING_DATABASE
+        target_directory = settings.INDEXING_DIRECTORIES
         
         indexer = FileSystemIndexer(db_path)
         indexer.index_filesystem(target_directory)

@@ -28,6 +28,9 @@ import magic
 import win32com.client
 import argparse
 
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
 
 
 
@@ -582,28 +585,124 @@ class FileSystemIndexer:
         self.logger.info(f"Files containing sensitive data: {self.stats['sensitive_files']}")
         self.logger.info(f"Total data indexed: {self.stats['total_size'] / (1024*1024*1024):.2f} GB")
 
+
+
+class NewFileHandler(FileSystemEventHandler):
+
+    def __init__(self,db_path, patterns):
+        self.db_path = db_path
+        self.indexer = FileSystemIndexer(db_path, patterns)
+        
+
+    def on_created(self, event):
+        if not event.is_directory:
+            file_path = event.src_path
+            print(f"New file detected: {file_path}")
+            has_sensitive_data = self.indexer.process_single_file(file_path)
+            print(f"File {file_path} indexed with sensitive data status: {has_sensitive_data}")
+    
+    def on_deleted(self, event):
+        if not event.is_directory:
+            file_path = event.src_path
+            print(f"File deleted: {file_path}")
+            self.remove_file_from_db(file_path)
+    
+    def on_moved(self, event):
+        if not event.is_directory:
+            old_path = event.src_path
+            new_path = event.dest_path
+            print(f"File moved/renamed from {old_path} to {new_path}")
+            self.update_file_in_db(old_path, new_path)
+    
+    def on_modified(self, event):
+        if not event.is_directory:
+            file_path = event.src_path
+            print(f"File modified: {file_path}")
+            has_sensitive_data = self.indexer.process_single_file(file_path)
+            print(f"File {file_path} re-indexed with sensitive data status: {has_sensitive_data}")
+    
+    def remove_file_from_db(self, file_path):
+        with self.indexer.get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM files WHERE path = ?", (file_path,))
+            print(f"Removed {file_path} from database.")
+
+    def update_file_in_db(self, old_path, new_path):
+        with self.indexer.get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE files SET path = ? WHERE path = ?", (new_path, old_path))
+            print(f"Updated database: {old_path} -> {new_path}")
+
+
 def main():
     start_time = time.time()
     
     try:
         parser = argparse.ArgumentParser(description="Optimized DLP Fingerprinting System")
-        parser.add_argument("-db", "--db_path", required=True, help="db to store indexed data")
-        parser.add_argument("-d", "--directories", required=True, help="directories to scan (LIST)")
-        parser.add_argument("-p", "--patterns", required=True, help="patterns to scan for (DICT)")
+        subparsers = parser.add_subparsers(dest="command", required=True)
+    
+        # Build subcommand
+        parser_index = subparsers.add_parser("indexing", help="file system indexing")
+        parser_index.add_argument("-db", "--db_path", required=True, help="db to store indexed data")
+        parser_index.add_argument("-d", "--directories", required=True, help="directories to scan (LIST)")
+        parser_index.add_argument("-p", "--patterns", required=True, help="patterns to scan for (DICT)")
+
+        parser_maintain = subparsers.add_parser("maintain", help="create, update, or delete ,moved files")
+        parser_maintain.add_argument("-d", "--directories", required=True, help="directories to scan (LIST)")
+        parser_maintain.add_argument("-db", "--db_path", required=True, help="db to store indexed data")
+        parser_maintain.add_argument("-p", "--patterns", required=True, help="patterns to scan for (DICT)")
 
         args = parser.parse_args()
-        db_path = args.db_path
-        # target_directory = [r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final",r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\sensitivefiles"]
-        # with open(r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final\patterns.json", 'r') as file:
-        #     data = json.load(file)
-        # patterns = data
-       
-        target_directory = args.directories
-        patterns = args.patterns        
-        indexer = FileSystemIndexer(db_path, patterns)
-        indexer.index_filesystem(target_directory)
         
-        print(f"\nTotal time taken: {time.time() - start_time:.2f} seconds")
+        if args.command == "indexing":
+            db_path = args.db_path
+            # target_directory = [r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final",r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\sensitivefiles"]
+            # with open(r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final\patterns.json", 'r') as file:
+            #     data = json.load(file)
+            # patterns = data
+            target_directories = json.loads(args.directories)  # Parse directories as a list
+            if not isinstance(target_directories, list):
+                raise ValueError("Directories argument must be a list.")
+        
+            patterns = json.loads(args.patterns)  # Parse patterns as a dictionary
+            if not isinstance(patterns, dict):
+                raise ValueError("Patterns argument must be a dictionary.")
+            
+            indexer = FileSystemIndexer(db_path, patterns)
+            indexer.index_filesystem(target_directories)
+            
+            print(f"\nTotal time taken: {time.time() - start_time:.2f} seconds")
+
+        elif args.command == "maintain":
+            # monitored_directories = [r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final",r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\sensitivefiles"]
+            # with open(r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final\patterns.json", 'r') as file:
+            #     data = json.load(file)
+            # patterns = data
+            patterns = json.loads(args.patterns)  # Parse patterns as a dictionary
+            if not isinstance(patterns, dict):
+                raise ValueError("Patterns argument must be a dictionary.")
+            db_path = args.db_path
+            event_handler = NewFileHandler(db_path, patterns)
+            observer = Observer()
+            
+            monitored_directories = json.loads(args.directories)  # Parse directories as a list
+            if not isinstance(monitored_directories, list):
+                raise ValueError("Directories argument must be a list.")
+        
+            for directory in monitored_directories:
+                if os.path.exists(directory):
+                    observer.schedule(event_handler, directory, recursive=True)
+            
+            observer.start()
+            print("Monitoring started for directories:", monitored_directories)
+            
+            try:
+                while True:
+                    time.sleep(5)
+            except KeyboardInterrupt:
+                observer.stop()
+            observer.join()
+
         
     except KeyboardInterrupt:
         print("\nIndexing interrupted by user.")

@@ -1,4 +1,4 @@
-import os
+import os,sys
 import json
 import argparse
 import logging
@@ -370,25 +370,26 @@ class EnhancedFingerprinter:
             logging.error(f"Error loading index file: {e}")
             self.index_data = {}
 
-    def scan_file(self, input_file: str) -> List[Dict]:
+    def scan_file(self, text: str) -> List[Dict]:
         if not self.index_data:
             logging.error("No index data loaded. Call load_index() first.")
             return []
 
-        extractor = TextExtractor(input_file)
+        # extractor = TextExtractor(input_file)
 
-        mime_type = magic.from_file(input_file, mime=True)
-        if mime_type and 'text' in mime_type:
-            with open(input_file, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-        else:
-            content = extractor.extract_text()
+        # mime_type = magic.from_file(input_file, mime=True)
+        # if mime_type and 'text' in mime_type:
+        #     with open(input_file, 'r', encoding='utf-8', errors='ignore') as f:
+        #         content = f.read()
+        # else:
+        #     content = extractor.extract_text()
 
-        if not content:
-            logging.warning(f"No content extracted from {input_file}")
-            return []
+        # if not content:
+        #     logging.warning(f"No content extracted from {input_file}")
+        #     return []
 
-        normalized_input = self.normalize_text(content)
+        normalized_input = self.normalize_text(text)
+
 
         matches = []
 
@@ -418,12 +419,12 @@ def main():
     # Build subcommand
     parser_build = subparsers.add_parser("build", help="Build fingerprint index")
     parser_build.add_argument("--folder", required=True, help="Folder containing sensitive files to index")
-    parser_build.add_argument("--output", default="fingerprint_index.json", help="Output index file")
+    parser_build.add_argument("--db", default="fingerprint_index.json", help="Output index file")
     
     # Scan subcommand
     parser_scan = subparsers.add_parser("scan", help="Scan a file against the index")
-    parser_scan.add_argument("--folder", required=True, help="File to scan")
-    parser_scan.add_argument("--index", default="fingerprint_index.json", help="Index file to use")
+    parser_scan.add_argument("--text", required=True, help="text to scan")
+    parser_scan.add_argument("--db", default="fingerprint_index.json", help="Index file to use")
     
     args = parser.parse_args()
     
@@ -432,14 +433,14 @@ def main():
     if args.command == "build":
         if os.path.exists('fingerprint_index.json'):
             os.remove('fingerprint_index.json')
-        fingerprinter.build_index(args.folder, args.output)
+        fingerprinter.build_index(args.folder, args.db)
     elif args.command == "scan":
-        for root, _, files in os.walk(args.folder):
-            for file in files:
-                input_file = os.path.join(root, file)
-        fingerprinter.load_index(args.index)
-        matches = fingerprinter.scan_file(input_file)
-        os.remove(input_file)
+        # for root, _, files in os.walk(args.folder):
+        #     for file in files:
+        #         input_file = os.path.join(root, file)
+        fingerprinter.load_index(args.db)
+        matches = fingerprinter.scan_file(args.text)
+        # os.remove(input_file)
 
         
         if matches:
@@ -455,7 +456,6 @@ def main():
                 print()
         else:
             print("No matches found.")
-
 
 if __name__ == "__main__":
     # FOR EXE:

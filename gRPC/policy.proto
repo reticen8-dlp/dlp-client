@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package policy;
+
+service ClientService {
+    rpc RegisterClient(ClientDetails) returns (ClientResponse);
+    rpc GetClientDetails(ClientDetails) returns (GetClientDetailsResponse);
+}
+
+message ClientDetails {
+    string agent_id = 1;
+    string device_name = 2;
+    string os_version = 3;
+    string username = 4;
+}
+
+message ClientResponse {
+    string status = 1;
+    string message = 2;
+}
+
+message GetClientDetailsResponse {
+    string agent_id = 1;
+    string device_name = 2;
+    string os_version = 3;
+    string username = 4;
+}

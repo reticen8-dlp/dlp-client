@@ -27,6 +27,31 @@ struct DriveInfo {
 };
 
 
+#include <windows.h>
+#include <shellapi.h>
+#include <string>
+#include <iostream>
+#include <shobjidl.h> // For SetCurrentProcessExplicitAppUserModelID
+
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "ole32.lib")
+
+// Force Unicode
+#ifdef UNICODE
+#define _UNICODE
+#endif
+
+// Application identifier for Windows
+#define APP_ID L"Reticen8-DLP"
+#define WINDOW_CLASS_NAME L"NotificationWindow"
+
+// Custom window message
+#define WM_TRAYICON (WM_USER + 1)
+
+// Global variables
+NOTIFYICONDATAW nid = {};
+HWND hwnd;
+
 // Global variables
 map<wstring, DriveInfo> removableDrives;
 bool isRunning = true;
@@ -55,6 +80,103 @@ void DisplayError(const wchar_t* action, DWORD error) {
     std::wcerr << L"Error " << action << L": " << (errorMsg ? errorMsg : L"Unknown error") << std::endl;
     LocalFree(errorMsg);
 }
+
+
+
+// Window procedure
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_DESTROY:
+            Shell_NotifyIconW(NIM_DELETE, &nid);
+            PostQuitMessage(0);
+            return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+void ShowNotification(const wchar_t* title, const wchar_t* message) {
+    // Initialize COM
+    HRESULT hr = CoInitialize(NULL);
+    if (SUCCEEDED(hr)) {
+        // Set the app ID for Windows
+        hr = SetCurrentProcessExplicitAppUserModelID(APP_ID);
+        if (FAILED(hr)) {
+            std::cerr << "Failed to set App ID" << std::endl;
+        }
+    }
+
+    // Register window class
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(WNDCLASSEXW);
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = GetModuleHandleW(NULL);
+    wc.lpszClassName = WINDOW_CLASS_NAME;
+    RegisterClassExW(&wc);
+
+    // Create hidden window
+    hwnd = CreateWindowExW(
+        0,
+        WINDOW_CLASS_NAME,
+        APP_ID,
+        WS_OVERLAPPED,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        NULL,
+        NULL,
+        GetModuleHandleW(NULL),
+        NULL
+    );
+
+    if (!hwnd) {
+        std::cerr << "Failed to create window" << std::endl;
+        CoUninitialize();
+        return;
+    }
+
+    // Initialize NOTIFYICONDATA
+    nid.cbSize = sizeof(NOTIFYICONDATAW);
+    nid.hWnd = hwnd;
+    nid.uID = 1;
+    nid.uFlags = NIF_ICON | NIF_TIP | NIF_INFO;
+    nid.uCallbackMessage = WM_TRAYICON;
+    nid.hIcon = (HICON)LoadImageW(
+        NULL,
+        (LPCWSTR)IDI_WARNING,
+        IMAGE_ICON,
+        0,
+        0,
+        LR_SHARED
+    );
+    
+    wcscpy_s(nid.szTip, sizeof(nid.szTip)/sizeof(wchar_t), APP_ID);
+    wcscpy_s(nid.szInfo, sizeof(nid.szInfo)/sizeof(wchar_t), message);
+    wcscpy_s(nid.szInfoTitle, sizeof(nid.szInfoTitle)/sizeof(wchar_t), title);
+    nid.dwInfoFlags = NIIF_INFO;
+    nid.uTimeout = 2000; // 2 seconds
+
+    // Show notification
+    Shell_NotifyIconW(NIM_ADD, &nid);
+    // Shell_NotifyIconW(NIM_MODIFY, &nid);
+
+    // Message loop - wait for 2 seconds
+    MSG msg;
+    ULONGLONG startTime = GetTickCount64();
+    while (GetTickCount64() - startTime < 2000) {
+        while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+        Sleep(100);
+    }
+
+    // Clean up
+    Shell_NotifyIconW(NIM_DELETE, &nid);
+    DestroyWindow(hwnd);
+    UnregisterClassW(WINDOW_CLASS_NAME, GetModuleHandleW(NULL));
+    CoUninitialize();
+}
+
+
 
 
 // Helper function to get drive type string
@@ -286,6 +408,12 @@ bool ModifyDriveAccess(const wstring& drive, bool restrict) {
     if (pSystemSID) FreeSid(pSystemSID);
     if (pEveryoneSID) FreeSid(pEveryoneSID);
     if (pNewDACL) LocalFree(pNewDACL);
+
+    if(success){
+        wstring status = restrict ? L"locked" : L"unlocked";
+        wstring message = L"Drive " + wstring(1, drive[0]) + L": Access Modified: " + status;
+        ShowNotification(L"Security Alert", message.c_str());
+    }
     return success;
 }
 
@@ -388,3 +516,6 @@ int main() {
 
     return 0;
 }
+
+
+//used this to generate exe :  g++ -static -std=c++17 -o RemovableDrive.exe removableDrive.cpp -lstdc++ -static-libgcc -static-libstdc++ -lole32 -lshell32 

@@ -7,6 +7,7 @@ import numpy as np
 from typing import Set, List, Dict, Tuple
 from numpy.linalg import norm
 import itertools
+from contextlib import contextmanager
 from multiprocessing import Pool, Manager
 import pdfminer.high_level
 import easyocr
@@ -14,6 +15,7 @@ import csv
 import pandas as pd
 from pptx import Presentation
 from docx import Document
+import sqlite3
 
 import tempfile
 from pdf2image import convert_from_path
@@ -287,15 +289,44 @@ class TextExtractor:
             return ""
 
 class EnhancedFingerprinter:
-    def __init__(self):
-        self.index_data = {}
+    def __init__(self, db_path: str = "Proprium_dlp.db"):
+       self.setup_database(db_path)
+       self.index_data = {}
        
+    @contextmanager
+    def get_db_connection(self, db_path: str = "Proprium_dlp.db"): 
+        """Database connection context manager with proper initialization""" 
+        conn = sqlite3.connect(db_path) 
+        conn.execute('PRAGMA journal_mode=WAL') 
+        conn.execute('PRAGMA synchronous=NORMAL') 
+    
+        try: 
+            yield conn 
+        except Exception as e: 
+            conn.rollback() 
+            raise 
+        else: 
+            conn.commit() 
+        finally: 
+            conn.close()
+
+
+    def setup_database(self,db_path) -> None:
+        """Initialize SQLite database with optimized schema"""
+        with sqlite3.connect(db_path) as conn:  # Use direct connection for setup
+            conn.executescript('''
+                CREATE TABLE IF NOT EXISTS file_Fingerprint(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    path TEXT UNIQUE,
+                    normalized_text TEXT
+                );
+                
+            ''')
+            conn.commit()
 
 
     def normalize_text(self, text: str) -> str:
         return re.sub(r'[\s\W_]+', '', text.lower())
-
-
     
     def direct_match_percentage(self,str1: str, str2: str) -> float:
         """
@@ -329,7 +360,7 @@ class EnhancedFingerprinter:
         return match_percentage ,diff_sim
     
 
-    def build_index(self, folder_path: str, output_file: str = "enhanced_index.json"):
+    def build_index(self, folder_path: str, db_path: str) -> None:
         index_data = {}
         logging.info(f"Building index from folder: {folder_path}")
         file_paths = []
@@ -340,36 +371,39 @@ class EnhancedFingerprinter:
 
         with Manager() as manager:
             queue = manager.Queue()
-            with Pool(processes=os.cpu_count() or 4) as pool:
+            with Pool(processes=os.cpu_count()) as pool:
                 args = [(file, queue) for file in file_paths]
                 pool.starmap(process_file_worker, args)
             
             # Collect results from the queue
-            while not queue.empty():
-                file_path, normalized= queue.get()
-                index_data[file_path] = {
-                    "normalized_text": normalized,
-                }
+            with self.get_db_connection(db_path) as conn:
+                cursor = conn.cursor()
+                while not queue.empty():
+                    file_path, normalized = queue.get()
+                    try:
+                        cursor.execute('''INSERT OR REPLACE INTO file_fingerprint (path, normalized_text) VALUES (?, ?)''', (file_path, normalized))
+                        logging.info(f"Successfully processed  files")
+                    except sqlite3.Error as e:
+                        logging.error(f"Database error while updating file info for {file_path}: {e}")
 
-        logging.info(f"Successfully processed {len(index_data)} files")
-        logging.info(f"Saving index to {output_file}...")
-        try:
-            with open(output_file, 'w') as f:
-                json.dump(index_data, f, indent=2)
-            print(f"Index saved successfully to {output_file}")
-        except Exception as e:
-            logging.error(f"Error saving index: {e}")
-            raise
+           
 
-    def load_index(self, index_file: str = "enhanced_index.json"):
-        try:
-            with open(index_file, 'r') as f:
-                self.index_data = json.load(f)
-            logging.info(f"Loaded index with {len(self.index_data)} entries")
-        except Exception as e:
-            logging.error(f"Error loading index file: {e}")
-            self.index_data = {}
+        
+   
+        
 
+    def load_index(self,db_path: str) -> None:
+        index_data = {}
+        with self.get_db_connection(db_path) as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT path, normalized_text FROM file_fingerprint")
+                for path, normalized in cursor.fetchall():
+                    index_data[path] = normalized
+            except sqlite3.Error as e:
+                self.logger.error(f"Database error while fetching data: {e}")
+        return index_data
+    
     def scan_file(self, text: str) -> List[Dict]:
         if not self.index_data:
             logging.error("No index data loaded. Call load_index() first.")
@@ -389,7 +423,6 @@ class EnhancedFingerprinter:
         #     return []
 
         normalized_input = self.normalize_text(text)
-
 
         matches = []
 
@@ -419,25 +452,27 @@ def main():
     # Build subcommand
     parser_build = subparsers.add_parser("build", help="Build fingerprint index")
     parser_build.add_argument("--folder", required=True, help="Folder containing sensitive files to index")
-    parser_build.add_argument("--db", default="fingerprint_index.json", help="Output index file")
+    parser_build.add_argument("--db", default="Proprium_dlp.db", help="Output index file")
     
     # Scan subcommand
     parser_scan = subparsers.add_parser("scan", help="Scan a file against the index")
     parser_scan.add_argument("--text", required=True, help="text to scan")
-    parser_scan.add_argument("--db", default="fingerprint_index.json", help="Index file to use")
+    parser_scan.add_argument("--db", default="Proprium_dlp.db", help="Index file to use")
     
     args = parser.parse_args()
     
-    fingerprinter = EnhancedFingerprinter()
+    
     
     if args.command == "build":
-        if os.path.exists('fingerprint_index.json'):
-            os.remove('fingerprint_index.json')
+        if os.path.exists("Proprium_dlp.db"):
+            os.remove("Proprium_dlp.db")
+        fingerprinter = EnhancedFingerprinter(args.db)    
         fingerprinter.build_index(args.folder, args.db)
     elif args.command == "scan":
         # for root, _, files in os.walk(args.folder):
         #     for file in files:
         #         input_file = os.path.join(root, file)
+        fingerprinter = EnhancedFingerprinter(args.db)  
         fingerprinter.load_index(args.db)
         matches = fingerprinter.scan_file(args.text)
         # os.remove(input_file)
@@ -456,6 +491,8 @@ def main():
                 print()
         else:
             print("No matches found.")
+
+
 
 if __name__ == "__main__":
     # FOR EXE:

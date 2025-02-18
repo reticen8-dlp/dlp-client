@@ -6,117 +6,247 @@ import json
 import uuid
 import winreg
 import ctypes
-from settings import PATTERNS_JSON_PATH
+import subprocess
 
-from notification import show_notification
-# ✅ Sensitive Data Patterns
-# Load sensitive data patterns from JSON file
-with open(PATTERNS_JSON_PATH, 'r') as file:
-    SENSITIVE_PATTERNS = json.load(file)
 
-# ✅ Function to check for sensitive data
+
+from win10toast import ToastNotifier
+import time
+
+def show_notification(title, message):
+    # Create a toast notifier instance
+    toaster = ToastNotifier()
+
+    # Show the notification
+    toaster.show_toast(title, message, duration=2)
+
+    # Delay to ensure the notification is shown before script exits
+    time.sleep(2)
+
+
+import tempfile,os
+
 def detect_sensitive_data(text):
     detected = {}
     for category, pattern in SENSITIVE_PATTERNS.items():
         matches = re.findall(pattern, text)
         if matches:
             detected[category] = matches
+    try:
+        exe_path = r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\dist\filefingerprinting.exe"
+        index_path = r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\fingerprinting\dist\fingerprint_index.json"
+        
+        args = [
+            exe_path,
+            "scan",
+            "--text", text,
+            "--db", index_path
+        ]
+        
+        result = subprocess.run(args, capture_output=True, text=True)
+        
+        output = result.stdout
+        
+        print("output",output)
+        print("result",result)
+
+            # Parse the output and check conditions
+        lines = output.splitlines()
+        for line in lines:
+            if 'direct-match similarity: True' in line or 'Direct match found!' in line:
+                detected['direct_match'] = detected.get('direct_match', []) + [line]
+            elif 'partial similarity:' in line:
+                # Extract the partial similarity percentage
+                match = re.search(r"partial similarity:\s*([0-9.]+)%", line)
+                if match:
+                    similarity_percentage = float(match.group(1))
+                    if similarity_percentage > 50:
+                        detected['high_similarity'] = detected.get('high_similarity', []) + [line]
+            
+        print(f"detected: {detected}")
+            
+            
+    except Exception as e:
+        print(f"Error: {e}")
+    
     return detected
 
-# ✅ Function to overwrite clipboard before clearing
+
 def overwrite_and_clear_clipboard():
     try:
-        win32clipboard.OpenClipboard()
-        win32clipboard.EmptyClipboard()
-        win32clipboard.SetClipboardText("CLEARED")  # Overwrite with non-sensitive data
-        win32clipboard.EmptyClipboard()
-        win32clipboard.CloseClipboard()
+        # Use pyperclip instead of direct win32clipboard to avoid WNDPROC errors
+        pyperclip.copy("CLEARED")  # Overwrite with non-sensitive data
+        pyperclip.copy("")  # Clear clipboard
         show_notification("Clipboard Cleared", "Sensitive data removed permanently!")
     except Exception as e:
         print("Error clearing clipboard:", e)
 
-# ✅ Function to completely disable clipboard history & prevent re-enabling
-def disable_clipboard_history_permanently():
+def get_clipboard_history_items():
+    """Get all items from the clipboard history using PowerShell"""
     try:
-        # Disable Clipboard History
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Clipboard", 0, winreg.KEY_SET_VALUE)
-        winreg.SetValueEx(key, "EnableClipboardHistory", 0, winreg.REG_DWORD, 0)
-        winreg.CloseKey(key)
+        # Modified PowerShell command to avoid WNDPROC errors
+        ps_command = """
+        # Alternative approach without using Windows.Forms
+        $null = [Windows.Clipboard,Windows.Forms,Version=4.0.0.0,Culture=neutral,PublicKeyToken=b77a5c561934e089]
 
-        # Prevent Users from Turning it Back On (Lock UI)
-        policy_key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\System")
-        winreg.SetValueEx(policy_key, "AllowClipboardHistory", 0, winreg.REG_DWORD, 0)
-        winreg.CloseKey(policy_key)
+        # Get clipboard history items using ClipboardStatic class
+        $historyItems = @()
+        try {
+            # Using ClipboardStatic
+            $clipboardStatic = [Windows.Forms.ClipboardStatic]::GetHistoryItems()
+            
+            foreach ($item in $clipboardStatic) {
+                $itemData = @{
+                    'Id' = $item.Id
+                    'Text' = ''
+                }
+                
+                try {
+                    # Get text if available
+                    if ($item.Contains("Text")) {
+                        $itemData.Text = $item.GetText()
+                    }
+                } catch {
+                    $itemData.Text = "Unable to extract text"
+                }
+                
+                $historyItems += $itemData
+            }
+        } catch {
+            Write-Error "Error accessing clipboard history: $_"
+        }
 
-        # Force Windows to Apply Policy
-        ctypes.windll.user32.SystemParametersInfoW(0, 0, None, 0x01)
+        # Convert to JSON
+        $historyItems | ConvertTo-Json
+        """
         
-        show_notification("Security Update", "Clipboard history permanently disabled!")
+        # Run PowerShell with increased timeout
+        result = subprocess.run(
+            ["powershell", "-Command", ps_command],
+            capture_output=True,
+            text=True,
+            timeout=30  # Increased timeout
+        )
+        
+        # Parse JSON output
+        if result.returncode == 0 and result.stdout.strip():
+            try:
+                return json.loads(result.stdout)
+            except json.JSONDecodeError:
+                print(f"Error parsing JSON: {result.stdout}")
+                return []
+        return []
+    
+    except subprocess.TimeoutExpired:
+        print("PowerShell command timed out")
+        return []
     except Exception as e:
-        print("Failed to disable clipboard history:", e)
+        print(f"Error getting clipboard history: {e}")
+        return []
 
-
-
-def enable_clipboard_history():
+def remove_clipboard_history_item(item_id):
+    """Remove a specific item from clipboard history by ID"""
     try:
-        # Enable Clipboard History in User Settings
-        key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Clipboard")
-        winreg.SetValueEx(key, "EnableClipboardHistory", 0, winreg.REG_DWORD, 1)
-        winreg.CloseKey(key)
-
-        # Remove Restriction from Group Policy
-        policy_key_path = r"SOFTWARE\Policies\Microsoft\Windows\System"
-        try:
-            policy_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, policy_key_path, 0, winreg.KEY_SET_VALUE)
-            winreg.DeleteValue(policy_key, "AllowClipboardHistory")  # Remove the restriction
-            winreg.CloseKey(policy_key)
-        except FileNotFoundError:
-            print("[INFO] Policy key not found, may already be removed.")
-
-        # Force Windows to Apply Policy
-        ctypes.windll.user32.SystemParametersInfoW(0, 0, None, 0x01)
-
-        print("[INFO] Clipboard history has been enabled. Restart may be required.")
+        # Modified PowerShell command to avoid WNDPROC errors
+        ps_command = f"""
+        # Initialize clipboard API
+        $null = [Windows.Clipboard,Windows.Forms,Version=4.0.0.0,Culture=neutral,PublicKeyToken=b77a5c561934e089]
+        
+        # Remove specific history item
+        try {{
+            [Windows.Forms.ClipboardStatic]::RemoveHistoryItem('{item_id}')
+            $true  # Return success
+        }} catch {{
+            Write-Error "Failed to remove clipboard history item: $_"
+            $false  # Return failure
+        }}
+        """
+        
+        result = subprocess.run(
+            ["powershell", "-Command", ps_command], 
+            capture_output=True,
+            text=True
+        )
+        
+        return "True" in result.stdout
+    
     except Exception as e:
-        print("[ERROR] Failed to enable clipboard history:", e)
+        print(f"Error removing clipboard history item: {e}")
+        return False
 
-# ✅ Function to monitor clipboard
-def monitor_clipboard():
-    last_clipboard_data = ""
+def check_and_clean_clipboard_history():
+    """Check all clipboard history items and remove ones with sensitive data"""
+    history_items = get_clipboard_history_items()
+    removed_count = 0
+    
+    if not history_items:
+        print("No clipboard history items found or unable to access clipboard history")
+        return 0
+    
+    for item in history_items:
+        if 'Text' in item and item['Text'] and item['Text'] != "Unable to extract text":
+            detected = detect_sensitive_data(item['Text'])
+            if detected:
+                if remove_clipboard_history_item(item['Id']):
+                    removed_count += 1
+                    categories = list(detected.keys())
+                    show_notification(
+                        "Sensitive Data Removed",
+                        f"Removed clipboard history item containing {', '.join(categories)}"
+                    )
+    
+    if removed_count > 0:
+        show_notification(
+            "Clipboard Cleanup Complete",
+            f"Removed {removed_count} history items with sensitive data"
+        )
+    
+    return removed_count
 
+def monitor_clipboard_with_history():
+    
     while True:
         try:
-            clipboard_content = pyperclip.paste()
-            if clipboard_content != last_clipboard_data:
+            # Check current clipboard content
+            try:
+                clipboard_content = pyperclip.paste()
+            except:
+                clipboard_content = ""
+                print("Error accessing clipboard")
+            
+            if clipboard_content :
                 last_clipboard_data = clipboard_content
-
-                # ✅ Detect sensitive data
+                
+                # Check for sensitive data in current clipboard
+                current_time =time.time()
                 detected = detect_sensitive_data(clipboard_content)
                 if detected:
-                    alert_message = f"Sensitive data detected: {json.dumps(detected, indent=2)}"
+                    print(f"Time Sensitive data detected: {time.time()-current_time}")
+                    categories = list(detected.keys())
+                    alert_message = f"Sensitive data detected: {', '.join(categories)}"
                     show_notification("Security Alert", alert_message)
                     
-                    # ✅ Overwrite clipboard to prevent leaks
+                    # Clear current clipboard
                     overwrite_and_clear_clipboard()
-
+            
+            # Check clipboard history periodically (every 30 seconds)
+            
+            check_and_clean_clipboard_history()
+             
+            
             time.sleep(1)
+        
         except Exception as e:
-            print("Error:", e)
+            print(f"Error in main loop: {e}")
             time.sleep(2)
 
-# ✅ Apply security measures
-# run the script with administrator privilages to disable clipboard history (win+V)
-
-# ✅ Re-enable clipboard history
-# enable_clipboard_history()
-
-#it clipboard is still not visible  try : 
-    #Restart Explorer (Optional)
-        # Press Ctrl + Shift + Esc to open Task Manager.
-        # Find Windows Explorer, right-click, and select Restart.
-# ✅ Start monitoring clipboard
 if __name__ == "__main__":
-    monitor_clipboard()
-    disable_clipboard_history_permanently()
+    # Run the monitor function
+    # Load sensitive data patterns
+    with open(r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final\patterns.json", 'r') as file:
+        SENSITIVE_PATTERNS = json.load(file)
+    monitor_clipboard_with_history()
 
-    # enable_clipboard_history()
+
+
+

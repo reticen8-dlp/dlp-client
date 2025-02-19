@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <dbt.h>
 #include <conio.h>
+#include <regex>
 #include "nlohmann/json.hpp" // JSON library folder (included as a separate folder)
 
 // Create an alias for the JSON library
@@ -46,7 +47,7 @@ json LoadDriveLockPolicy() {
             if (policy.contains("policy_id") && policy["policy_id"] == "POL-002") {
                 return policy; // Return only this section
             }
-        }
+        };
 
         std::cerr << "Drive Lock Policy (POL-002) not found." << std::endl;
     } catch (const std::exception& e) {
@@ -357,6 +358,8 @@ void PrintDriveInfo(const map<wstring, DriveInfo>& drives) {
         index++;
     }
 }
+
+
 // Helper function to parse drive numbers
 vector<int> ParseDriveNumbers(const string& input) {
     vector<int> numbers;
@@ -541,13 +544,45 @@ void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availa
         json policyData = LoadDriveLockPolicy();
         //load the removable drives here available after each minute
         vector<wstring> AvailableRemovableDrives;
+        vector<string> whitelistedNames = policyData["conditions"]["drive_lock"]["whitelisted_removable_disks"];
+
         cout<< "Avaialble Removable Drives: "<<endl;
         for (const auto& drive : removableDrives) {
-            wcout << L"Drive: " << drive.second.letter <<endl ;
+            wcout << L"Drive: " << drive.second.letter << endl;
             AvailableRemovableDrives.push_back(drive.second.letter + L":\\");
         }
 
+        auto it = AvailableRemovableDrives.begin();
+        while (it != AvailableRemovableDrives.end()) {
+            wstring driveLabelW = GetDriveLabel(*it);  // Get drive label as wstring
+            string driveLabel(driveLabelW.begin(), driveLabelW.end());  // Convert to string
+           
+            bool isWhitelisted = false;
+    
+            for (const auto& pattern : whitelistedNames) {
+                try {
+                    if (regex_match(driveLabel, regex(pattern))) {
+                        isWhitelisted = true;
+                        break;
+                    }
+                } catch (const std::regex_error& e) {
+                    cerr << "Invalid regex in policy: " << e.what() << endl;
+                }
+            }
+    
+            if (isWhitelisted) {
+                wcout << L"Skipping whitelisted drive: " << driveLabelW  << endl;
+                it = AvailableRemovableDrives.erase(it);
+                continue;
+            } else {
+                ++it;
+            }
 
+        }
+        cout<< "Avaialble Removable Drives After whitelisting : "<<endl;
+        for (const auto& drive : AvailableRemovableDrives) {
+            wcout << L"Drive: " << drive << endl;
+        }
         // If policy is invalid, continue using the last valid policy
         if (policyData.empty() || !isValidDriveLockPolicy(policyData)) {
             std::cerr << "Invalid or missing policy data, continuing with last valid policy." << std::endl;
@@ -572,7 +607,7 @@ void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availa
 
 
 
-int main() {
+int main(){
 
     // Start drive monitoring in a separate thread
     thread monitorThread(MonitorDriveChanges);
@@ -596,4 +631,5 @@ int main() {
     return 0;
 }
 
-//USED THIS TO CREATE EXE:  g++ DiskLock.cpp -o DiskLock -static -static-libgcc -static-libstdc++ -lole32
+
+//USED THIS TO CREATE EXE :  g++ -static -o DiskControl.exe test2.cpp -I./nlohmann -L. -static-libgcc -static-libstdc++ -lole32 -std=c++17

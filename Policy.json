@@ -1,82 +1,87 @@
 {
-    "agent_id": "AGT-12345",
-    "policies": [
-      {
-        "policy_id": "POL-001",
-        "name": "Block Confidential Files",
-        "description": "Prevents copying of confidential files based on fingerprint",
-        "conditions": {
-          "file_fingerprint": ["fingerprint_hash_1", "fingerprint_hash_2"],
-          "file_management": {
-            "file_name": ["confidential", "restricted"],
-            "file_type": ["pdf", "docx"],
-            "file_size": { "max": 5000000 }, 
-            "file_age": { "max_days": 30 }
-          },
-          "pattern_phrase": {
-            "regex": ["\\b(SSN|CreditCard)\\b"],
-            "phrases": ["top secret", "do not share"]
-          }
+  "agent_id": "AGT-12345",
+  "policies": [
+    {
+      "policy_id": "POL-001",
+      "name": "Block Confidential Files",
+      "description": "Prevents copying of confidential files based on fingerprint",
+      "conditions": {
+        "file_fingerprint": ["fingerprint_hash_1", "fingerprint_hash_2"],
+        "file_management": {
+          "file_name": ["confidential", "restricted"],
+          "file_type": ["pdf", "docx"],
+          "file_size": { "max": 5000000 }, 
+          "file_age": { "max_days": 30 }
         },
-        "action": {
-          "block": true,
-          "alert": true,
-          "log": true
-        },
-        "source": ["USER-123", "USER-456"],
-        "destination": {
-          "allowed_apps": ["word.exe", "excel.exe"],
-          "blocked_apps": ["chrome.exe", "notepad.exe"],
-          "network_endpoints": ["*://drive.google.com/*"]
+        "pattern_phrase": {
+          "regex": ["\\b(SSN|CreditCard)\\b"],
+          "phrases": ["top secret", "do not share"]
         }
       },
-      {
-        "policy_id": "POL-002",
-        "name": "Drive Lock Policy",
-        "description": "Locks or unlocks local and removable drives",
-        "conditions": {
-          "time_policy": {
-            "enabled": true,
-            "start_time": "09:00",
-            "end_time": "18:00",
-            "days": [1, 2, 3, 4, 5]
-          },
-          "drive_lock": {
-            "local_drives": [
-              {
-                "drive": "C:",
-                "lock": false
-              },
-              {
-                "drive": "D:",
-                "lock": false
-              },
-              {
-                "drive": "E:",
-                "lock": false
-              },
-              {
-                "drive": "F:",
-                "lock": false
-              }
-            ],
-            "removable_drives": [
-                {
-                    "drive": "G:",
-                    "lock": false
-                },
-                {
-                    "drive": "H:",
-                    "lock": false
-                }
-            ]
-          }
-        },
-        "action": {
-          "lock": true,
-          "alert": true,
-          "log": true
-        }
+      "action": {
+        "block": true,
+        "alert": true,
+        "log": true
+      },
+      "source": ["USER-123", "USER-456"],
+      "destination": {
+        "allowed_apps": ["word.exe", "excel.exe"],
+        "blocked_apps": ["chrome.exe", "notepad.exe"],
+        "network_endpoints": ["*://drive.google.com/*"]
       }
-    ]
-  }
+    },
+    {
+      "policy_id": "POL-002",
+      "name": "Drive Lock Policy",
+      "description": "Locks or unlocks local and removable drives",
+      "conditions": {
+        "time_policy": {
+          "enabled": true,
+          "start_time": "09:00",
+          "end_time": "19:00",
+          "days": [1, 2, 3, 4, 5]
+        },
+        "drive_lock": {
+          "local_drives": [
+            {
+              "drive": "C:",
+              "lock": false
+            },
+            {
+              "drive": "D:",
+              "lock": false
+            },
+            {
+              "drive": "E:",
+              "lock": false
+            },
+            {
+              "drive": "F:",
+              "lock": false
+            }
+          ],
+          "removable_drives": [
+              {
+                  "drive": "G:",
+                  "lock": false
+              },
+              {
+                  "drive": "H:",
+                  "lock": false
+              }
+          ],
+          "whitelisted_removable_disks": [
+              "SanDisk", 
+              "Kingston",
+              "SecureDrive.*" 
+          ]
+        }
+      },
+      "action": {
+        "lock": true,
+        "alert": true,
+        "log": true
+      }
+    }
+  ]
+}

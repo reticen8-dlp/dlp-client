@@ -1,3 +1,6 @@
+# any file create delete modify or edit will be monitored in given dir.(for detecting sensitive data files) for alerts.
+# enforce # Grant read and execute permissions - Deny delete, rename, and move  the file's permissions
+
 import json
 import os
 import sqlite3
@@ -7,6 +10,11 @@ from watchdog.events import FileSystemEventHandler
 from settings import INDEXING_DATABASE
 from settings import FILE_CHANGES_DATABASE
 from notification import show_notification  # Import your notification script
+
+from settings import POWERSHELL_SCRIPT_PATH
+import subprocess
+import tempfile
+import argparse
 
 # Fetch monitored file paths from the database
 def get_monitored_files():
@@ -50,6 +58,22 @@ def init_db():
     conn.commit()
     conn.close()
 
+class FilePermissions():
+ 
+    def __init__(self,file_paths):
+        self.file_paths = file_paths
+    
+
+    def enforce_file_protection(self):
+        # Create a temporary file to store the file paths
+        with tempfile.NamedTemporaryFile(delete=False, mode='w', newline='') as temp_file:
+            for path in self.file_paths:
+                temp_file.write(path + '\n')
+            temp_file_path = temp_file.name
+
+        # Call the PowerShell script with the temporary file as an argument
+        subprocess.Popen(["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", POWERSHELL_SCRIPT_PATH, temp_file_path])
+    
 class FileMonitorHandler(FileSystemEventHandler):
 
     last_event = {}  # Dictionary to store last event type for each file
@@ -97,6 +121,9 @@ class FileMonitorHandler(FileSystemEventHandler):
     def on_moved(self, event):
         self.process_event("Moved", f"{event.src_path} → {event.dest_path}")
 
+
+
+
 def start_monitoring():
     init_db()
     observer = Observer()
@@ -117,5 +144,21 @@ def start_monitoring():
         print("Monitoring stopped.")
     observer.join()
 
+
+
 if __name__ == "__main__":
-    start_monitoring()
+    parser = argparse.ArgumentParser(description="Monitor sensitive files for changes")
+    parser.add_argument("--monitor", action="store_true", help="Start file monitoring")
+    parser.add_argument("--enforce", action="store_true", help="Enforce file protection")
+    args = parser.parse_args()
+    if args.monitor:
+        start_monitoring()
+    elif args.enforce:
+        monitored_files = get_monitored_files()
+        enforce_permissions = FilePermissions(monitored_files)
+        if monitored_files:
+            enforce_permissions.enforce_file_protection()
+        else:
+            print("No monitored files found.")
+    else:
+        parser.print_help()    

@@ -3,8 +3,18 @@ syntax = "proto3";
 package policy;
 
 service ClientService {
-    rpc RegisterClient(ClientDetails) returns (ClientResponse);
-    rpc GetClientDetails(ClientDetails) returns (GetClientDetailsResponse);
+    rpc RegisterClient (ClientDetails) returns (ClientResponse);
+    rpc GetClientDetails (ClientRequest) returns (GetClientDetailsResponse);
+    rpc GetPolicy (PolicyRequest) returns (PolicyResponse);
+}
+
+service LogService {  // NEW SERVICE for logging
+    rpc SendLog (LogRequest) returns (LogResponse);
+}
+
+// Client Registration
+message ClientRequest {
+    string client_id = 1;
 }
 
 message ClientDetails {
@@ -17,6 +27,7 @@ message ClientDetails {
 message ClientResponse {
     string status = 1;
     string message = 2;
+    string client_id = 3;
 }
 
 message GetClientDetailsResponse {
@@ -24,4 +35,29 @@ message GetClientDetailsResponse {
     string device_name = 2;
     string os_version = 3;
     string username = 4;
+}
+
+// Policy Retrieval
+message PolicyRequest {
+    string client_id = 1;
+    string agent_id = 2;
+}
+
+message PolicyResponse {
+    string status = 1;
+    string message = 2;
+    string policy_data = 3; // JSON policy as a string
+}
+
+// Logging
+message LogRequest {
+    string client_id = 1;
+    string agent_id = 2;
+    string log_level = 3; // INFO, WARNING, ERROR, etc.
+    string message = 4;
+}
+
+message LogResponse {
+    string status = 1;
+    string message = 2;
 }

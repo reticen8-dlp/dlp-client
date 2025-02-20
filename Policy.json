@@ -1,87 +1,26 @@
-{
-  "agent_id": "AGT-12345",
-  "policies": [
-    {
-      "policy_id": "POL-001",
-      "name": "Block Confidential Files",
-      "description": "Prevents copying of confidential files based on fingerprint",
-      "conditions": {
-        "file_fingerprint": ["fingerprint_hash_1", "fingerprint_hash_2"],
-        "file_management": {
-          "file_name": ["confidential", "restricted"],
-          "file_type": ["pdf", "docx"],
-          "file_size": { "max": 5000000 }, 
-          "file_age": { "max_days": 30 }
-        },
-        "pattern_phrase": {
-          "regex": ["\\b(SSN|CreditCard)\\b"],
-          "phrases": ["top secret", "do not share"]
-        }
-      },
-      "action": {
-        "block": true,
-        "alert": true,
-        "log": true
-      },
-      "source": ["USER-123", "USER-456"],
-      "destination": {
-        "allowed_apps": ["word.exe", "excel.exe"],
-        "blocked_apps": ["chrome.exe", "notepad.exe"],
-        "network_endpoints": ["*://drive.google.com/*"]
-      }
+{"policy_id": "2ec6695b-d83d-43e9-8a6b-8c081751f1f1",
+"name": "TEST POL",
+"description": "test policy deemasc",
+"status": "Active",
+"severity": "High",
+"pattern": {"id": "None", "name": "None", "type": "None", "input": "None"
     },
-    {
-      "policy_id": "POL-002",
-      "name": "Drive Lock Policy",
-      "description": "Locks or unlocks local and removable drives",
-      "conditions": {
-        "time_policy": {
-          "enabled": true,
-          "start_time": "09:00",
-          "end_time": "19:00",
-          "days": [1, 2, 3, 4, 5]
-        },
-        "drive_lock": {
-          "local_drives": [
-            {
-              "drive": "C:",
-              "lock": false
-            },
-            {
-              "drive": "D:",
-              "lock": false
-            },
-            {
-              "drive": "E:",
-              "lock": false
-            },
-            {
-              "drive": "F:",
-              "lock": false
+"file": {"id": "None", "name":"None","type":"None", "size":"None", "age":"None"
+    },
+"action": {"channel_action": {"network_channels": {"Email": {"action": "", "included": [], "excluded": []
+                }, "FTP": {"action": "", "included": [], "excluded": []
+                }, "HTTP/S": {"action": "", "included": [], "excluded": []
+                }, "Chat": {"action": "Always Permitted", "included": [], "excluded": []
+                }, "Plaintext": {"action": "Always Permitted", "included": [], "excluded": []
+                }
+            }, "endpoint_channels": {"Apps": {"action": "", "included": [], "excluded": []
+                }, "RemovableDrives": {"action": "Block", "included": ["*"], "excluded": []
+                }, "LocalDrives": {"action": "Block", "included": ["*"], "excluded": ["C:\\"]
+                }, "Directories": {"action": "", "included": [], "excluded": []
+                }, "LAN": {"action": "", "included": [], "excluded": []
+                }, "Printing": {"action": "", "included": [], "excluded": []
+                }
             }
-          ],
-          "removable_drives": [
-              {
-                  "drive": "G:",
-                  "lock": false
-              },
-              {
-                  "drive": "H:",
-                  "lock": false
-              }
-          ],
-          "whitelisted_removable_disks": [
-              "SanDisk", 
-              "Kingston",
-              "SecureDrive.*" 
-          ]
         }
-      },
-      "action": {
-        "lock": true,
-        "alert": true,
-        "log": true
-      }
     }
-  ]
 }

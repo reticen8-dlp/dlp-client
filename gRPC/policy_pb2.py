@@ -24,19 +24,31 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cpolicy.proto\x12\x06policy\"\\\n\rClientDetails\x12\x10\n\x08\x61gent_id\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65vice_name\x18\x02 \x01(\t\x12\x12\n\nos_version\x18\x03 \x01(\t\x12\x10\n\x08username\x18\x04 \x01(\t\"1\n\x0e\x43lientResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\"g\n\x18GetClientDetailsResponse\x12\x10\n\x08\x61gent_id\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65vice_name\x18\x02 \x01(\t\x12\x12\n\nos_version\x18\x03 \x01(\t\x12\x10\n\x08username\x18\x04 \x01(\t2\x9d\x01\n\rClientService\x12?\n\x0eRegisterClient\x12\x15.policy.ClientDetails\x1a\x16.policy.ClientResponse\x12K\n\x10GetClientDetails\x12\x15.policy.ClientDetails\x1a .policy.GetClientDetailsResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cpolicy.proto\x12\x06policy\"\"\n\rClientRequest\x12\x11\n\tclient_id\x18\x01 \x01(\t\"\\\n\rClientDetails\x12\x10\n\x08\x61gent_id\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65vice_name\x18\x02 \x01(\t\x12\x12\n\nos_version\x18\x03 \x01(\t\x12\x10\n\x08username\x18\x04 \x01(\t\"D\n\x0e\x43lientResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tclient_id\x18\x03 \x01(\t\"g\n\x18GetClientDetailsResponse\x12\x10\n\x08\x61gent_id\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65vice_name\x18\x02 \x01(\t\x12\x12\n\nos_version\x18\x03 \x01(\t\x12\x10\n\x08username\x18\x04 \x01(\t\"4\n\rPolicyRequest\x12\x11\n\tclient_id\x18\x01 \x01(\t\x12\x10\n\x08\x61gent_id\x18\x02 \x01(\t\"F\n\x0ePolicyResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x0bpolicy_data\x18\x03 \x01(\t\"U\n\nLogRequest\x12\x11\n\tclient_id\x18\x01 \x01(\t\x12\x10\n\x08\x61gent_id\x18\x02 \x01(\t\x12\x11\n\tlog_level\x18\x03 \x01(\t\x12\x0f\n\x07message\x18\x04 \x01(\t\".\n\x0bLogResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t2\xd9\x01\n\rClientService\x12?\n\x0eRegisterClient\x12\x15.policy.ClientDetails\x1a\x16.policy.ClientResponse\x12K\n\x10GetClientDetails\x12\x15.policy.ClientRequest\x1a .policy.GetClientDetailsResponse\x12:\n\tGetPolicy\x12\x15.policy.PolicyRequest\x1a\x16.policy.PolicyResponse2@\n\nLogService\x12\x32\n\x07SendLog\x12\x12.policy.LogRequest\x1a\x13.policy.LogResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'policy_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_CLIENTDETAILS']._serialized_start=24
-  _globals['_CLIENTDETAILS']._serialized_end=116
-  _globals['_CLIENTRESPONSE']._serialized_start=118
-  _globals['_CLIENTRESPONSE']._serialized_end=167
-  _globals['_GETCLIENTDETAILSRESPONSE']._serialized_start=169
-  _globals['_GETCLIENTDETAILSRESPONSE']._serialized_end=272
-  _globals['_CLIENTSERVICE']._serialized_start=275
-  _globals['_CLIENTSERVICE']._serialized_end=432
+  _globals['_CLIENTREQUEST']._serialized_start=24
+  _globals['_CLIENTREQUEST']._serialized_end=58
+  _globals['_CLIENTDETAILS']._serialized_start=60
+  _globals['_CLIENTDETAILS']._serialized_end=152
+  _globals['_CLIENTRESPONSE']._serialized_start=154
+  _globals['_CLIENTRESPONSE']._serialized_end=222
+  _globals['_GETCLIENTDETAILSRESPONSE']._serialized_start=224
+  _globals['_GETCLIENTDETAILSRESPONSE']._serialized_end=327
+  _globals['_POLICYREQUEST']._serialized_start=329
+  _globals['_POLICYREQUEST']._serialized_end=381
+  _globals['_POLICYRESPONSE']._serialized_start=383
+  _globals['_POLICYRESPONSE']._serialized_end=453
+  _globals['_LOGREQUEST']._serialized_start=455
+  _globals['_LOGREQUEST']._serialized_end=540
+  _globals['_LOGRESPONSE']._serialized_start=542
+  _globals['_LOGRESPONSE']._serialized_end=588
+  _globals['_CLIENTSERVICE']._serialized_start=591
+  _globals['_CLIENTSERVICE']._serialized_end=808
+  _globals['_LOGSERVICE']._serialized_start=810
+  _globals['_LOGSERVICE']._serialized_end=874
 # @@protoc_insertion_point(module_scope)

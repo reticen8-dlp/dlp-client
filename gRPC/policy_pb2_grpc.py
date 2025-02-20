@@ -41,8 +41,13 @@ class ClientServiceStub(object):
                 _registered_method=True)
         self.GetClientDetails = channel.unary_unary(
                 '/policy.ClientService/GetClientDetails',
-                request_serializer=policy__pb2.ClientDetails.SerializeToString,
+                request_serializer=policy__pb2.ClientRequest.SerializeToString,
                 response_deserializer=policy__pb2.GetClientDetailsResponse.FromString,
+                _registered_method=True)
+        self.GetPolicy = channel.unary_unary(
+                '/policy.ClientService/GetPolicy',
+                request_serializer=policy__pb2.PolicyRequest.SerializeToString,
+                response_deserializer=policy__pb2.PolicyResponse.FromString,
                 _registered_method=True)
 
 
@@ -61,6 +66,12 @@ class ClientServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetPolicy(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ClientServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -71,8 +82,13 @@ def add_ClientServiceServicer_to_server(servicer, server):
             ),
             'GetClientDetails': grpc.unary_unary_rpc_method_handler(
                     servicer.GetClientDetails,
-                    request_deserializer=policy__pb2.ClientDetails.FromString,
+                    request_deserializer=policy__pb2.ClientRequest.FromString,
                     response_serializer=policy__pb2.GetClientDetailsResponse.SerializeToString,
+            ),
+            'GetPolicy': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPolicy,
+                    request_deserializer=policy__pb2.PolicyRequest.FromString,
+                    response_serializer=policy__pb2.PolicyResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -127,8 +143,110 @@ class ClientService(object):
             request,
             target,
             '/policy.ClientService/GetClientDetails',
-            policy__pb2.ClientDetails.SerializeToString,
+            policy__pb2.ClientRequest.SerializeToString,
             policy__pb2.GetClientDetailsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPolicy(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/policy.ClientService/GetPolicy',
+            policy__pb2.PolicyRequest.SerializeToString,
+            policy__pb2.PolicyResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class LogServiceStub(object):
+    """NEW SERVICE for logging
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.SendLog = channel.unary_unary(
+                '/policy.LogService/SendLog',
+                request_serializer=policy__pb2.LogRequest.SerializeToString,
+                response_deserializer=policy__pb2.LogResponse.FromString,
+                _registered_method=True)
+
+
+class LogServiceServicer(object):
+    """NEW SERVICE for logging
+    """
+
+    def SendLog(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_LogServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'SendLog': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendLog,
+                    request_deserializer=policy__pb2.LogRequest.FromString,
+                    response_serializer=policy__pb2.LogResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'policy.LogService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('policy.LogService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class LogService(object):
+    """NEW SERVICE for logging
+    """
+
+    @staticmethod
+    def SendLog(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/policy.LogService/SendLog',
+            policy__pb2.LogRequest.SerializeToString,
+            policy__pb2.LogResponse.FromString,
             options,
             channel_credentials,
             insecure,

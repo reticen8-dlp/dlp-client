@@ -24,8 +24,8 @@ using json = nlohmann::json;
 json lastValidPolicy;
 // Function to load only the "Drive Lock Policy" section from policy.json
 json LoadDriveLockPolicy() {
-    std::ifstream file("policy.json");
-    json fullPolicy;
+    std::ifstream file("Policy.json");
+    json policy;
     
     if (!file.is_open()) {
         std::cerr << "Failed to open policy.json" << std::endl;
@@ -33,23 +33,9 @@ json LoadDriveLockPolicy() {
     }
 
     try {
-        file >> fullPolicy;
+        file >> policy;
         file.close();
-
-        // Check if "policies" exist
-        if (!fullPolicy.contains("policies")) {
-            std::cerr << "Invalid policy format: 'policies' key missing." << std::endl;
-            return {};
-        }
-
-        // Find "Drive Lock Policy"
-        for (const auto& policy : fullPolicy["policies"]) {
-            if (policy.contains("policy_id") && policy["policy_id"] == "POL-002") {
-                return policy; // Return only this section
-            }
-        };
-
-        std::cerr << "Drive Lock Policy (POL-002) not found." << std::endl;
+        return policy; 
     } catch (const std::exception& e) {
         std::cerr << "Error parsing JSON: " << e.what() << std::endl;
     }
@@ -57,17 +43,16 @@ json LoadDriveLockPolicy() {
     return {}; // Return empty if not found
 }
 // Function to validate the policy format
+// Modified isValidDriveLockPolicy function
 bool isValidDriveLockPolicy(const json& policyData) {
-    if (!policyData.contains("conditions")) return false;
-    if (!policyData["conditions"].contains("time_policy")) return false;
-    if (!policyData["conditions"].contains("drive_lock")) return false;
-    if (!policyData["conditions"]["time_policy"].contains("start_time")) return false;
-    if (!policyData["conditions"]["time_policy"].contains("end_time")) return false;
-    if (!policyData["conditions"]["time_policy"].contains("days")) return false;
-    if (!policyData["conditions"]["drive_lock"].contains("local_drives")) return false;
-
-    return true;
+    return  
+           policyData.contains("action") && 
+           policyData["action"].contains("channel_action") &&  // Fix: Add "channel_action" level
+           policyData["action"]["channel_action"].contains("endpoint_channels") &&
+           policyData["action"]["channel_action"]["endpoint_channels"].contains("LocalDrives") &&
+           policyData["action"]["channel_action"]["endpoint_channels"].contains("RemovableDrives");
 }
+
 
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
@@ -482,120 +467,163 @@ bool isWithinPolicyTime(const json& policyData) {
 
     return false;
 }
+// Modified enforceDriveLockPolicy function
+void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& availableDrives, const vector<wstring>& availableRemovableDrives) {
+    auto& localDrives = policyData["action"]["channel_action"]["endpoint_channels"]["LocalDrives"];
+    string Localaction = localDrives["action"];
+    vector<string> Localincluded = localDrives["included"];
+    vector<string> Localexcluded = localDrives["excluded"];
 
-void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& availableDrives,const vector<wstring>& availableRemovableDrives , bool withinTime) {
-    // Ensure "conditions" and "drive_lock" exist
-    if (!policyData.contains("conditions") || !policyData["conditions"].contains("drive_lock")) {
-        std::cerr << "Drive lock policy section missing!" << std::endl;
-        return;
-    }
-
-    json driveLock = policyData["conditions"]["drive_lock"];
-
-    // Iterate through the list of drives in the policy
-    for (const auto& drive : driveLock["local_drives"]) {
-        if (!drive.contains("drive") || !drive.contains("lock")) {
-            std::cerr << "Invalid drive lock format!" << std::endl;
-            continue;
+    // Handle Block action
+    if (Localaction == "Block") {
+        if (Localincluded.empty()) {
+            // If included is empty, do nothing
+            return;
         }
 
-        std::string driveLetter = drive["drive"];
-        bool lockStatus = false;  // Default: unlock
+        bool applyToAll = (find(Localincluded.begin(), Localincluded.end(), "*") != Localincluded.end());
 
-        if (withinTime) {
-            lockStatus = drive["lock"];  // Apply policy lock state
-        }
+        for (const auto& drive : availableDrives) {
+            string driveLetter = string(1, drive[0]) + ":\\";
 
-        // Apply policy to the available drives
-        for (const auto& availableDrive : availableDrives) {
-            if (availableDrive[0] == driveLetter[0]) {
-                ModifyDriveAccess(availableDrive, lockStatus);
-            }
-        }
-    }
-
-    // Process Removable Drives
-    if (driveLock.contains("removable_drives")) {
-        for (const auto& drive : driveLock["removable_drives"]) {
-            if (!drive.contains("drive") || !drive.contains("lock")) {
-                std::cerr << "Invalid removable drive lock format!" << std::endl;
-                continue;
-            }
-
-            std::string driveLetter = drive["drive"];
-            bool lockStatus = false;  // Default: unlock
-
-            if (withinTime) {
-                lockStatus = drive["lock"];  // Apply policy lock state
-            }
-
-            // Apply policy to the available removable drives
-            for (const auto& availableDrive : availableRemovableDrives) {
-                if (availableDrive[0] == driveLetter[0]) {
-                    ModifyDriveAccess(availableDrive, lockStatus);
+            // If applying to all drives, exclude ones in the excluded list
+            if (applyToAll) {
+                if (find(Localexcluded.begin(), Localexcluded.end(), driveLetter) == Localexcluded.end()) {
+                    ModifyDriveAccess(drive, true); // Lock the drive if not found in excluded list
+                }
+            } 
+            // Otherwise, apply only to included drives, except those in excluded list
+            else if (find(Localincluded.begin(), Localincluded.end(), driveLetter) != Localincluded.end()) {
+                if (find(Localexcluded.begin(), Localexcluded.end(), driveLetter) == Localexcluded.end()) {
+                    ModifyDriveAccess(drive, true); // Lock the drive if it is in included list but not in excluded list
                 }
             }
         }
     }
+        
+    // Handle Pass action
+    else if (Localaction == "Pass") {
+        bool applyToAll = (find(Localincluded.begin(), Localincluded.end(), "*") != Localincluded.end());
+        bool lockAllExceptIncluded = (find(Localexcluded.begin(), Localexcluded.end(), "*") != Localexcluded.end());
+
+        for (const auto& drive : availableDrives) {
+            string driveLetter = string(1, drive[0]) + ":\\";
+
+            if (applyToAll) {
+                // Unlock all drives except those in excluded list
+                if (find(Localexcluded.begin(), Localexcluded.end(), driveLetter) == Localexcluded.end()) {
+                    ModifyDriveAccess(drive, false); // Unlock the drive
+                }
+            } else if (lockAllExceptIncluded) {
+                // Lock all drives except those in included list
+                if (find(Localincluded.begin(), Localincluded.end(), driveLetter) == Localincluded.end()) {
+                    ModifyDriveAccess(drive, true); // Lock the drive
+                }
+            } else {
+                // Unlock only included drives
+                if (find(Localincluded.begin(), Localincluded.end(), driveLetter) != Localincluded.end()) {
+                    ModifyDriveAccess(drive, false); // Unlock the drive
+                }
+                // Lock only excluded drives
+                if (find(Localexcluded.begin(), Localexcluded.end(), driveLetter) != Localexcluded.end()) {
+                    ModifyDriveAccess(drive, true); // Lock the drive
+                }
+            }
+        }
+    }
+
+    // Handle RemovableMedia similarly
+    auto& removableMedia = policyData["action"]["channel_action"]["endpoint_channels"]["RemovableDrives"];
+    string Removableaction = removableMedia["action"];
+    vector<string> Removableincluded = removableMedia["included"];
+    vector<string> Removableexcluded = removableMedia["excluded"];
+
+    if (Removableaction == "Block") {
+        if (Removableincluded.empty()) {
+            return;
+        }
+        
+        bool applyToAll = (find(Removableincluded.begin(), Removableincluded.end(), "*") != Removableincluded.end());
+        
+        for (const auto& drive : availableRemovableDrives) {
+            wstring driveLabelW = GetDriveLabel(drive);
+            string driveLabel(driveLabelW.begin(), driveLabelW.end());
+
+            bool isExcluded = any_of(Removableexcluded.begin(), Removableexcluded.end(), [&](const string& pattern) {
+                return regex_match(driveLabel, regex(pattern));
+            });
+
+            string driveLetter = string(1, drive[0]) + ":\\";
+            
+            if (applyToAll) {
+                if (!isExcluded) {
+                    ModifyDriveAccess(drive, true);
+                }
+            } else {
+                bool isIncluded = any_of(Removableincluded.begin(), Removableincluded.end(), [&](const string& pattern) {
+                    return regex_match(driveLabel, regex(pattern));
+                });
+                if (isIncluded && !isExcluded) {
+                    ModifyDriveAccess(drive, true);
+                }
+            }
+        }
+    } 
+    else if (Removableaction == "Pass") {
+        bool applyToAll = (find(Removableincluded.begin(), Removableincluded.end(), "*") != Removableincluded.end());
+        bool lockAllExceptIncluded = (find(Removableexcluded.begin(), Removableexcluded.end(), "*") != Removableexcluded.end());
+
+        for (const auto& drive : availableRemovableDrives) {
+
+            wstring driveLabelW = GetDriveLabel(drive);
+            string driveLabel(driveLabelW.begin(), driveLabelW.end());
+            
+            bool isExcluded = any_of(Removableexcluded.begin(), Removableexcluded.end(), [&](const string& pattern) {
+                return regex_match(driveLabel, regex(pattern));
+            });
+            
+            bool isIncluded = any_of(Removableincluded.begin(), Removableincluded.end(), [&](const string& pattern) {
+                return regex_match(driveLabel, regex(pattern));
+            });
+
+            string driveLetter = string(1, drive[0]) + ":\\";
+            
+            if (applyToAll && !isExcluded) {
+                    ModifyDriveAccess(drive, false);
+            } else if (isIncluded) {
+                    ModifyDriveAccess(drive, false);
+            } 
+            if (lockAllExceptIncluded && !isIncluded) {
+                ModifyDriveAccess(drive, true);
+            }
+        }
+    }
+
 }
 
+// Modified runPolicyEnforcementLoop function
 void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availableDrives) {
     while (true) {
         json policyData = LoadDriveLockPolicy();
-        //load the removable drives here available after each minute
+        cout<< "Policy Data: "<<policyData<<endl;
         vector<wstring> AvailableRemovableDrives;
-        vector<string> whitelistedNames = policyData["conditions"]["drive_lock"]["whitelisted_removable_disks"];
-
-        cout<< "Avaialble Removable Drives: "<<endl;
+        
+        // Get current removable drives
         for (const auto& drive : removableDrives) {
-            wcout << L"Drive: " << drive.second.letter << endl;
             AvailableRemovableDrives.push_back(drive.second.letter + L":\\");
         }
 
-        auto it = AvailableRemovableDrives.begin();
-        while (it != AvailableRemovableDrives.end()) {
-            wstring driveLabelW = GetDriveLabel(*it);  // Get drive label as wstring
-            string driveLabel(driveLabelW.begin(), driveLabelW.end());  // Convert to string
-           
-            bool isWhitelisted = false;
-    
-            for (const auto& pattern : whitelistedNames) {
-                try {
-                    if (regex_match(driveLabel, regex(pattern))) {
-                        isWhitelisted = true;
-                        break;
-                    }
-                } catch (const std::regex_error& e) {
-                    cerr << "Invalid regex in policy: " << e.what() << endl;
-                }
-            }
-    
-            if (isWhitelisted) {
-                wcout << L"Skipping whitelisted drive: " << driveLabelW  << endl;
-                it = AvailableRemovableDrives.erase(it);
-                continue;
-            } else {
-                ++it;
-            }
-
-        }
-        cout<< "Avaialble Removable Drives After whitelisting : "<<endl;
-        for (const auto& drive : AvailableRemovableDrives) {
-            wcout << L"Drive: " << drive << endl;
-        }
         // If policy is invalid, continue using the last valid policy
         if (policyData.empty() || !isValidDriveLockPolicy(policyData)) {
             std::cerr << "Invalid or missing policy data, continuing with last valid policy." << std::endl;
-            policyData = lastValidPolicy; // Use last known good policy
+            policyData = lastValidPolicy;
         } else {
             if (policyData != lastValidPolicy) {
-                bool withinTime = isWithinPolicyTime(policyData);
-                enforceDriveLockPolicy(policyData, availableDrives, AvailableRemovableDrives ,withinTime);
-                lastValidPolicy = policyData; // Update stored policy
-            }else {
+                enforceDriveLockPolicy(policyData, availableDrives, AvailableRemovableDrives);
+                lastValidPolicy = policyData;
+            } else {
                 std::cout << "No policy change detected." << std::endl;
             }
-
         }
 
         // Sleep for the specified interval before running again
@@ -632,4 +660,6 @@ int main(){
 }
 
 
-//USED THIS TO CREATE EXE :  g++ -static -o DiskControl.exe test2.cpp -I./nlohmann -L. -static-libgcc -static-libstdc++ -lole32 -std=c++17
+
+//USED THIS TO CREATE EXE:  g++ notification.cpp  -I"C:\Program Files\Python39\include" -L"C:\Program Files\Python39\libs" -lpython39 -static -static-libgcc -static-libstdc++ -O2 -o DiskLockAgent.exe 
+

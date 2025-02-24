@@ -308,6 +308,159 @@ bool ModifyDriveAccess(const wstring& drive, bool restrict)  {
     return success;
 }
 
+
+bool ReadOnlyAccess(const wstring& drive, bool restrict) {
+    PSID pAdminSID = NULL;
+    PSID pSystemSID = NULL;
+    PSID pEveryoneSID = NULL;
+    PACL pNewDACL = NULL;
+    bool success = false;
+
+    try {
+        // Create SIDs for required groups
+        SID_IDENTIFIER_AUTHORITY ntAuthority = SECURITY_NT_AUTHORITY;
+        SID_IDENTIFIER_AUTHORITY worldAuthority = SECURITY_WORLD_SID_AUTHORITY;
+
+        // Create Admin SID
+        if (!AllocateAndInitializeSid(&ntAuthority, 2,
+            SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS,
+            0, 0, 0, 0, 0, 0, &pAdminSID)) {
+            throw GetLastError();
+        }
+
+        // Create System SID
+        if (!AllocateAndInitializeSid(&ntAuthority, 1,
+            SECURITY_LOCAL_SYSTEM_RID,
+            0, 0, 0, 0, 0, 0, 0, &pSystemSID)) {
+            throw GetLastError();
+        }
+
+        // Create Everyone SID
+        if (!AllocateAndInitializeSid(&worldAuthority, 1,
+            SECURITY_WORLD_RID,
+            0, 0, 0, 0, 0, 0, 0, &pEveryoneSID)) {
+            throw GetLastError();
+        }
+
+        // Prepare EXPLICIT_ACCESS structures - we'll need 5 entries for complete control
+        EXPLICIT_ACCESS ea[5] = {};
+        ZeroMemory(&ea, 5 * sizeof(EXPLICIT_ACCESS));
+
+        if (restrict) {
+            // Admin - Only allow read and security permissions
+            ea[0].grfAccessPermissions = READ_CONTROL | WRITE_DAC | WRITE_OWNER | ACCESS_SYSTEM_SECURITY;
+            ea[0].grfAccessMode = SET_ACCESS;
+            ea[0].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[0].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+            ea[0].Trustee.ptstrName = (LPTSTR)pAdminSID;
+
+            // Admin - Deny write permissions
+            ea[1].grfAccessPermissions = FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA |
+                                       FILE_ADD_FILE | FILE_ADD_SUBDIRECTORY | FILE_DELETE_CHILD | DELETE;
+            ea[1].grfAccessMode = DENY_ACCESS;
+            ea[1].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+            ea[1].Trustee.ptstrName = (LPTSTR)pAdminSID;
+
+            // System - Same as admin
+            ea[2].grfAccessPermissions = READ_CONTROL | WRITE_DAC | WRITE_OWNER | ACCESS_SYSTEM_SECURITY;
+            ea[2].grfAccessMode = SET_ACCESS;
+            ea[2].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[2].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[2].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+            ea[2].Trustee.ptstrName = (LPTSTR)pSystemSID;
+
+            // Everyone - Read only permissions
+            ea[3].grfAccessPermissions = FILE_GENERIC_READ | FILE_LIST_DIRECTORY | 
+                                       FILE_READ_ATTRIBUTES | FILE_READ_EA | SYNCHRONIZE;
+            ea[3].grfAccessMode = SET_ACCESS;
+            ea[3].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[3].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[3].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
+            ea[3].Trustee.ptstrName = (LPTSTR)pEveryoneSID;
+
+            // Everyone - Explicitly deny write permissions
+            ea[4].grfAccessPermissions = FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA |
+                                       FILE_ADD_FILE | FILE_ADD_SUBDIRECTORY | FILE_DELETE_CHILD | DELETE;
+            ea[4].grfAccessMode = DENY_ACCESS;
+            ea[4].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[4].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[4].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
+            ea[4].Trustee.ptstrName = (LPTSTR)pEveryoneSID;
+        } else {
+            // Restore full access
+            // Admin full control
+            ea[0].grfAccessPermissions = GENERIC_ALL;
+            ea[0].grfAccessMode = SET_ACCESS;
+            ea[0].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[0].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+            ea[0].Trustee.ptstrName = (LPTSTR)pAdminSID;
+
+            // System full control
+            ea[1].grfAccessPermissions = GENERIC_ALL;
+            ea[1].grfAccessMode = SET_ACCESS;
+            ea[1].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+            ea[1].Trustee.ptstrName = (LPTSTR)pSystemSID;
+
+            // Everyone full access
+            ea[2].grfAccessPermissions = GENERIC_ALL;
+            ea[2].grfAccessMode = SET_ACCESS;
+            ea[2].grfInheritance = SUB_CONTAINERS_AND_OBJECTS_INHERIT;
+            ea[2].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+            ea[2].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
+            ea[2].Trustee.ptstrName = (LPTSTR)pEveryoneSID;
+        }
+
+        // Create new ACL
+        DWORD dwRes = SetEntriesInAcl(restrict ? 5 : 3, ea, NULL, &pNewDACL);
+        if (dwRes != ERROR_SUCCESS) {
+            throw dwRes;
+        }
+
+        // Apply the new ACL
+        dwRes = SetNamedSecurityInfoW(
+            (LPWSTR)drive.c_str(),
+            SE_FILE_OBJECT,
+            DACL_SECURITY_INFORMATION,
+            NULL,
+            NULL,
+            pNewDACL,
+            NULL
+        );
+
+        if (dwRes != ERROR_SUCCESS) {
+            throw dwRes;
+        }
+
+        success = true;
+        wcout << (restrict ? L"Set strict read-only access for " : L"Restored full access for ") << drive << endl;
+    }
+    catch (DWORD error) {
+        wstring action = restrict ? L"setting read-only access for " : L"restoring full access for ";
+        action += drive;
+        wcout << L"Error: " << action << L" drive" << endl;
+    }
+
+    // Cleanup
+    if (pAdminSID) FreeSid(pAdminSID);
+    if (pSystemSID) FreeSid(pSystemSID);
+    if (pEveryoneSID) FreeSid(pEveryoneSID);
+    if (pNewDACL) LocalFree(pNewDACL);
+
+    if(success){
+        wstring status = restrict ? L"Read-Only" : L"unlocked";
+        wstring message = L"Drive " + wstring(1, drive[0]) + L": Access Modified: " + status;
+        ShowNotification(L"Security Alert", message.c_str());
+    }
+
+    return success;
+}
+
 // ****************** CODE FOR REMOVABLE DISK INHERITED ********************************
 // Structure to hold drive information
 struct DriveInfo {
@@ -344,6 +497,61 @@ void PrintDriveInfo(const map<wstring, DriveInfo>& drives) {
     }
 }
 
+// namespace fs = std::filesystem;
+
+// void ApplyPermissionsRecursively(const std::wstring& path, PACL pOldDACL) {
+//     PACL pNewDACL = NULL;
+//     EXPLICIT_ACCESSW explicitAccess = {};
+
+//     explicitAccess.grfAccessPermissions = GENERIC_READ | FILE_GENERIC_READ | FILE_GENERIC_EXECUTE;
+//     explicitAccess.grfAccessMode = SET_ACCESS;
+//     explicitAccess.grfInheritance = OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE;
+//     explicitAccess.Trustee.TrusteeForm = TRUSTEE_IS_NAME;
+//     explicitAccess.Trustee.TrusteeType = TRUSTEE_IS_USER;
+//     explicitAccess.Trustee.ptstrName = (LPWSTR)L"EVERYONE";
+
+//     DWORD result = SetEntriesInAclW(1, &explicitAccess, pOldDACL, &pNewDACL);
+//     if (result != ERROR_SUCCESS) {
+//         std::wcerr << L"Failed to set entries in ACL for " << path << L". Error: " << result << std::endl;
+//         return;
+//     }
+
+//     result = SetNamedSecurityInfoW(
+//         (LPWSTR)path.c_str(), SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
+//         NULL, NULL, pNewDACL, NULL
+//     );
+
+//     if (result != ERROR_SUCCESS) {
+//         std::wcerr << L"Failed to set security info for " << path << L". Error: " << result << std::endl;
+//     }
+
+//     if (pNewDACL) LocalFree(pNewDACL);
+// }
+
+// void SetReadOnlyPermissions(const std::wstring& drivePath) {
+//     PACL pOldDACL = NULL;
+//     PSECURITY_DESCRIPTOR pSD = NULL;
+
+//     DWORD result = GetNamedSecurityInfoW(
+//         drivePath.c_str(), SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
+//         NULL, NULL, &pOldDACL, NULL, &pSD
+//     );
+
+//     if (result != ERROR_SUCCESS) {
+//         std::wcerr << L"Failed to get security info. Error: " << result << std::endl;
+//         return;
+//     }
+
+//     ApplyPermissionsRecursively(drivePath, pOldDACL);
+
+//     for (const auto& entry : fs::recursive_directory_iterator(drivePath, fs::directory_options::skip_permission_denied)) {
+//         ApplyPermissionsRecursively(entry.path().wstring(), pOldDACL);
+//     }
+
+//     if (pSD) LocalFree(pSD);
+
+//     std::wcout << L"Strict read-only permissions set successfully for " << drivePath << std::endl;
+// }
 
 // Helper function to parse drive numbers
 vector<int> ParseDriveNumbers(const string& input) {
@@ -502,7 +710,7 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
     }
         
     // Handle Pass action
-    else if (Localaction == "Pass") {
+    else if (Localaction == "Allow") {
         bool applyToAll = (find(Localincluded.begin(), Localincluded.end(), "*") != Localincluded.end());
         bool lockAllExceptIncluded = (find(Localexcluded.begin(), Localexcluded.end(), "*") != Localexcluded.end());
 
@@ -531,6 +739,28 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
             }
         }
     }
+    else if (Localaction == "Read-only") {
+        if (Localincluded.empty()) {
+            return;
+        }
+    
+        bool applyToAll = (find(Localincluded.begin(), Localincluded.end(), "*") != Localincluded.end());
+    
+        for (const auto& drive : availableDrives) {
+            string driveLetter = string(1, drive[0]) + ":\\";
+    
+            if (applyToAll) {
+                if (find(Localexcluded.begin(), Localexcluded.end(), driveLetter) == Localexcluded.end()) {
+                    ReadOnlyAccess(wstring(drive.begin(), drive.end()), true);
+                }
+            } 
+            else if (find(Localincluded.begin(), Localincluded.end(), driveLetter) != Localincluded.end()) {
+                if (find(Localexcluded.begin(), Localexcluded.end(), driveLetter) == Localexcluded.end()) {
+                    ReadOnlyAccess(wstring(drive.begin(), drive.end()), true);
+                }
+            }
+        }
+    }
 
     // Handle RemovableMedia similarly
     auto& removableMedia = policyData["action"]["channel_action"]["endpoint_channels"]["RemovableDrives"];
@@ -548,9 +778,13 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
         for (const auto& drive : availableRemovableDrives) {
             wstring driveLabelW = GetDriveLabel(drive);
             string driveLabel(driveLabelW.begin(), driveLabelW.end());
+             // Convert "*" to ".*" for regex
+            auto toValidRegex = [](const string& pattern) {
+                return (pattern == "*") ? ".*" : pattern;
+            };
 
             bool isExcluded = any_of(Removableexcluded.begin(), Removableexcluded.end(), [&](const string& pattern) {
-                return regex_match(driveLabel, regex(pattern));
+                return regex_match(driveLabel, regex(toValidRegex(pattern)));
             });
 
             string driveLetter = string(1, drive[0]) + ":\\";
@@ -561,7 +795,7 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
                 }
             } else {
                 bool isIncluded = any_of(Removableincluded.begin(), Removableincluded.end(), [&](const string& pattern) {
-                    return regex_match(driveLabel, regex(pattern));
+                    return regex_match(driveLabel, regex(toValidRegex(pattern)));
                 });
                 if (isIncluded && !isExcluded) {
                     ModifyDriveAccess(drive, true);
@@ -569,7 +803,7 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
             }
         }
     } 
-    else if (Removableaction == "Pass") {
+    else if (Removableaction == "Allow") {
         bool applyToAll = (find(Removableincluded.begin(), Removableincluded.end(), "*") != Removableincluded.end());
         bool lockAllExceptIncluded = (find(Removableexcluded.begin(), Removableexcluded.end(), "*") != Removableexcluded.end());
 
@@ -577,13 +811,16 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
 
             wstring driveLabelW = GetDriveLabel(drive);
             string driveLabel(driveLabelW.begin(), driveLabelW.end());
-            
+            auto toValidRegex = [](const string& pattern) {
+                return (pattern == "*") ? ".*" : pattern;
+            };
+
             bool isExcluded = any_of(Removableexcluded.begin(), Removableexcluded.end(), [&](const string& pattern) {
-                return regex_match(driveLabel, regex(pattern));
+                return regex_match(driveLabel,regex(toValidRegex(pattern)));
             });
             
             bool isIncluded = any_of(Removableincluded.begin(), Removableincluded.end(), [&](const string& pattern) {
-                return regex_match(driveLabel, regex(pattern));
+                return regex_match(driveLabel, regex(toValidRegex(pattern)));
             });
 
             string driveLetter = string(1, drive[0]) + ":\\";
@@ -598,6 +835,28 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
             }
         }
     }
+    else if (Removableaction == "Read-only") {
+        if (Removableincluded.empty()) {
+            return;
+        }
+    
+        bool applyToAll = (find(Removableincluded.begin(), Removableincluded.end(), "*") != Removableincluded.end());
+    
+        for (const auto& drive : availableRemovableDrives) {
+            string driveLetter = string(1, drive[0]) + ":\\";
+    
+            if (applyToAll) {
+                if (find(Removableexcluded.begin(), Removableexcluded.end(), driveLetter) == Removableexcluded.end()) {
+                    ReadOnlyAccess(wstring(drive.begin(), drive.end()), true);
+                }
+            } 
+            else if (find(Removableincluded.begin(), Removableincluded.end(), driveLetter) != Removableincluded.end()) {
+                if (find(Removableexcluded.begin(), Removableexcluded.end(), driveLetter) == Removableexcluded.end()) {
+                    ReadOnlyAccess(wstring(drive.begin(), drive.end()), true);
+                }
+            }
+        }
+    }
 
 }
 
@@ -605,11 +864,13 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
 void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availableDrives) {
     while (true) {
         json policyData = LoadDriveLockPolicy();
-        cout<< "Policy Data: "<<policyData<<endl;
+        // cout<< "Policy Data: "<<policyData<<endl;
+        
         vector<wstring> AvailableRemovableDrives;
         
         // Get current removable drives
         for (const auto& drive : removableDrives) {
+            wcout<< "Drive: "<<drive.second.letter<<endl;
             AvailableRemovableDrives.push_back(drive.second.letter + L":\\");
         }
 
@@ -652,7 +913,7 @@ int main(){
         wcout << i + 1 << L": " << availableDrives[i] << endl;
     }
     
-    int timeInterval = 60; // Run every 60 seconds
+    int timeInterval = 30; // Run every 30 seconds
     runPolicyEnforcementLoop(timeInterval, availableDrives);
 
 
@@ -661,5 +922,8 @@ int main(){
 
 
 
-//USED THIS TO CREATE EXE:  g++ notification.cpp  -I"C:\Program Files\Python39\include" -L"C:\Program Files\Python39\libs" -lpython39 -static -static-libgcc -static-libstdc++ -O2 -o DiskLockAgent.exe 
-
+//USED THIS TO CREATE EXE: g++ -static -o DiskControl.exe DriveControl.cpp -I./nlohmann -L. -static-libgcc -static-libstdc++ -lole32 -std=c++17
+// Action : Block , Allow , Read-only
+// * means all
+//Be Careful to exclude "C:\\" while action= Block and include = *, also when action = Allow and include = *, exclude must not contain C:\\
+//For Removable Drives, include and exclude should be the label of the drive

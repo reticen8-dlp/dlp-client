@@ -1,0 +1,46 @@
+{
+    "weekly": {
+        "schedule_id": "ed4b7ee1-b84c-4c1b-90a1-27f79bfd5811",
+        "schedule_name": "testNewWeekly",
+        "schedule_description": "test for weekly",
+        "cron_expression": null,
+        "days_of_week": [
+            "Tuesday",
+            "Thrusday",
+            "Saturday",
+            "Wednesday"
+        ],
+        "time_range": null,
+        "recurrence": "Weekly",
+        "start_time": "2025-02-24T02:00:00",
+        "end_time": "2025-02-24T15:00:00",
+        "created_at": "2025-02-24T04:24:23.574566",
+        "updated_at": "2025-02-24T04:31:49.244445"
+    },
+    "daily": {
+        "schedule_id": "e69035ee-ab42-4918-b0a6-41312b2a44b7",
+        "schedule_name": "testNewWeekly",
+        "schedule_description": "test for weekly",
+        "cron_expression": null,
+        "days_of_week": null,
+        "time_range": null,
+        "recurrence": "Daily",
+        "start_time": "2025-02-24T09:00:00",
+        "end_time": "2025-02-24T17:10:00",
+        "created_at": "2025-02-24T04:24:23.574566",
+        "updated_at": "2025-02-24T04:24:23.574594"
+    },
+    "cron": {
+        "schedule_id": "8a9da410-638e-40c8-a8e5-797bc2dcaa77",
+        "schedule_name": "testerrorasds",
+        "schedule_description": "test",
+        "cron_expression": "5**5*",
+        "days_of_week": null,
+        "time_range": null,
+        "recurrence": null,
+        "start_time": null,
+        "end_time": null,
+        "created_at": "2025-02-24T04:24:23.574566",
+        "updated_at": "2025-02-24T04:24:23.574594"
+    }
+}

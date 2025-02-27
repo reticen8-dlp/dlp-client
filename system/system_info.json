@@ -1,0 +1,1439 @@
+{
+    "ComputerSystem": {
+        "Manufacturer": "HP",
+        "Model": "HP Pavilion Gaming Laptop 15-ec0xxx",
+        "Name": "LAPTOP-R55PJC7F",
+        "TotalPhysicalMemory": "6313820160"
+    },
+    "Processor": [
+        {
+            "Name": "AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx  ",
+            "NumberOfCores": 4,
+            "NumberOfLogicalProcessors": 8,
+            "MaxClockSpeed": 2100
+        }
+    ],
+    "BIOS": {
+        "Manufacturer": "AMI",
+        "SerialNumber": "5CD040BQSG",
+        "Version": "F.14",
+        "ReleaseDate": "20220329000000.000000+000"
+    },
+    "OperatingSystem": {
+        "Caption": "Microsoft Windows 11 Home Single Language",
+        "Version": "10.0.26100",
+        "InstallDate": "20241022112543.000000+330",
+        "BuildNumber": "26100",
+        "OSArchitecture": "64-bit"
+    },
+    "PhysicalMemory": [
+        {
+            "Manufacturer": "Samsung",
+            "Capacity": "8589934592",
+            "Speed": 3200,
+            "PartNumber": "M471A1K43DB1-CWE    "
+        }
+    ],
+    "DiskDrives": [
+        {
+            "Model": "ST1000LM049-2GH172",
+            "InterfaceType": "IDE",
+            "Size": "1000202273280",
+            "SerialNumber": "WN92W926"
+        },
+        {
+            "Model": "KXG60ZNV256G KIOXIA",
+            "InterfaceType": "SCSI",
+            "Size": "256052966400",
+            "SerialNumber": "0000_0000_0000_0001_8CE3_8E03_0040_E366."
+        }
+    ],
+    "InstalledApplications": [
+        {
+            "DisplayName": "NVM for Windows 1.1.12",
+            "DisplayVersion": "1.1.12",
+            "Publisher": "Ecor Ventures LLC",
+            "InstallDate": "20241017"
+        },
+        {
+            "DisplayName": "7-Zip 24.08 (x64)",
+            "DisplayVersion": "24.08",
+            "Publisher": "Igor Pavlov",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Git",
+            "DisplayVersion": "2.45.2",
+            "Publisher": "The Git Development Community",
+            "InstallDate": "20240603"
+        },
+        {
+            "DisplayName": "HP Documentation",
+            "DisplayVersion": "1.0.0.1",
+            "Publisher": "HP Inc.",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Microsoft Azure Compute Emulator - v2.9.7",
+            "DisplayVersion": "2.9.8999.43",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "15-10-2024"
+        },
+        {
+            "DisplayName": "Microsoft 365 - en-us",
+            "DisplayVersion": "16.0.18526.20118",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "VLC media player",
+            "DisplayVersion": "3.0.16",
+            "Publisher": "VideoLAN",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "WinRAR 6.11 (64-bit)",
+            "DisplayVersion": "6.11.0",
+            "Publisher": "win.rar GmbH",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "AMD Radeon Settings",
+            "DisplayVersion": "2019.0807.2241.40847",
+            "Publisher": "Advanced Micro Devices, Inc.",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.40664",
+            "DisplayVersion": "12.0.40664",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20231202"
+        },
+        {
+            "DisplayName": "Microsoft Azure Compute Emulator - v2.9.7",
+            "DisplayVersion": "2.9.8999.43",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 6.0.35 (x64_x86)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Host FX Resolver - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "IIS Express Application Compatibility Database for x64",
+            "DisplayVersion": null,
+            "Publisher": null,
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Microsoft ODBC Driver 17 for SQL Server",
+            "DisplayVersion": "17.10.6.1",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "HP One Agent",
+            "DisplayVersion": "1.1.728.6140",
+            "Publisher": "HP Inc.",
+            "InstallDate": "20250205"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 6.0.35 (x64_arm)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 6.0.35 Targeting Pack (x64)",
+            "DisplayVersion": "6.0.35.24462",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 8.0.10 (x64_arm64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.Maui.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "8.0.82",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Go Programming Language amd64 go1.23.0",
+            "DisplayVersion": "1.23.0",
+            "Publisher": "https://go.dev",
+            "InstallDate": "20240821"
+        },
+        {
+            "DisplayName": "Microsoft .NET Runtime - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "AMD WVR64",
+            "DisplayVersion": "2019.0807.2241.40847",
+            "Publisher": "Advanced Micro Devices, Inc.",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.MacCatalyst.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "18.0.8303",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2022 X64 Debug Runtime - 14.40.33816",
+            "DisplayVersion": "14.40.33816",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Standard Library (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Documentation (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "vs_Graphics_Singletonx64",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 pip Bootstrap (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft .NET SDK 8.0.403 (x64) from Visual Studio",
+            "DisplayVersion": "8.4.324.47413",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "WireGuard",
+            "DisplayVersion": "0.5.3",
+            "Publisher": "WireGuard LLC",
+            "InstallDate": "20240812"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 6.0.35 (x64)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.42.34433",
+            "DisplayVersion": "14.42.34433",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.Aspire.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "64.64.18482",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Host - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Command Line Utilities 15 for SQL Server",
+            "DisplayVersion": "15.0.1300.359",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "HP One Agent",
+            "DisplayVersion": "1.1.728.6140",
+            "Publisher": "HP Inc.",
+            "InstallDate": "20250205"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.macOS.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "15.0.8303",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.iOS.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "18.0.8303",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.40664",
+            "DisplayVersion": "12.0.40664",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20231202"
+        },
+        {
+            "DisplayName": "Windows Subsystem for Linux",
+            "DisplayVersion": "2.2.4.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20240821"
+        },
+        {
+            "DisplayName": "Microsoft System CLR Types for SQL Server 2019",
+            "DisplayVersion": "15.0.2000.5",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Runtime - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21605",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET 8.0 Templates 8.0.403 (x64)",
+            "DisplayVersion": "32.10.55893",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 8.0.10 Targeting Pack (x64)",
+            "DisplayVersion": "8.0.10.24468",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_devenx64vmsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET 6.0 Templates 8.0.403 (x64)",
+            "DisplayVersion": "24.8.23125",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Workload.Emscripten.net7.Manifest (x64)",
+            "DisplayVersion": "64.40.21345",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "VS JIT Debugger",
+            "DisplayVersion": "17.0.157.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual Studio Installer",
+            "DisplayVersion": "3.12.2149.20818",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "AMD Ryzen Master SDK Alpha",
+            "DisplayVersion": "1.3.0.0533",
+            "Publisher": "Advanced Micro Devices, Inc.",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "Oracle VM VirtualBox 7.0.18",
+            "DisplayVersion": "7.0.18",
+            "Publisher": "Oracle and/or its affiliates",
+            "InstallDate": "20240603"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.tvOS.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "18.0.8303",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Node.js",
+            "DisplayVersion": "22.12.0",
+            "Publisher": "Node.js Foundation",
+            "InstallDate": "20241216"
+        },
+        {
+            "DisplayName": "Microsoft .NET Targeting Pack - 6.0.35 (x64)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Test Suite (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft Azure Libraries for .NET \u2013 v2.9",
+            "DisplayVersion": "3.0.2404.2502",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Sdk.Android.Manifest-8.0.100 (x64)",
+            "DisplayVersion": "34.0.113",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Web Deploy 4.0",
+            "DisplayVersion": "10.0.8305",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Workload.Emscripten.net6.Manifest (x64)",
+            "DisplayVersion": "64.40.21345",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Runtime - 6.0.35 (x64)",
+            "DisplayVersion": "48.140.21525",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Executables (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft .NET Targeting Pack - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Office 16 Click-to-Run Licensing Component",
+            "DisplayVersion": "16.0.18526.20118",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20250225"
+        },
+        {
+            "DisplayName": "Office 16 Click-to-Run Extensibility Component",
+            "DisplayVersion": "16.0.18526.20044",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20250221"
+        },
+        {
+            "DisplayName": "Office 16 Click-to-Run Localization Component",
+            "DisplayVersion": "16.0.12527.22060",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20211201"
+        },
+        {
+            "DisplayName": "Microsoft Azure Authoring Tools - v2.9.7",
+            "DisplayVersion": "2.9.8999.45",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 8.0.10 (x64_x86)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Add to Path (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "DiagnosticsHub_CollectionService",
+            "DisplayVersion": "17.11.35317",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Workload.Emscripten.Current.Manifest (x64)",
+            "DisplayVersion": "64.40.21345",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "IIS 10.0 Express",
+            "DisplayVersion": "10.0.08608",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Standard Targeting Pack - 2.1.0 (x64)",
+            "DisplayVersion": "24.0.28113",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Teams Meeting Add-in for Microsoft Office",
+            "DisplayVersion": "1.24.31301",
+            "Publisher": "Microsoft",
+            "InstallDate": "20250128"
+        },
+        {
+            "DisplayName": "icecap_collection_x64",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64)",
+            "DisplayVersion": "48.140.21525",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Adobe Acrobat (64-bit)",
+            "DisplayVersion": "24.005.20399",
+            "Publisher": "Adobe",
+            "InstallDate": "20250203"
+        },
+        {
+            "DisplayName": "IIS Express Application Compatibility Database for x86",
+            "DisplayVersion": null,
+            "Publisher": null,
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Windows PC Health Check",
+            "DisplayVersion": "3.2.2110.14001",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20211201"
+        },
+        {
+            "DisplayName": "vs_minshellinteropx64msi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "NVIDIA Graphics Driver 561.19",
+            "DisplayVersion": "561.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20250123"
+        },
+        {
+            "DisplayName": "NVIDIA GeForce Experience 3.20.0.105",
+            "DisplayVersion": "3.20.0.105",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Optimus Update 38.0.1.0",
+            "DisplayVersion": "38.0.1.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA PhysX System Software 9.19.0218",
+            "DisplayVersion": "9.19.0218",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Update 38.0.1.0",
+            "DisplayVersion": "38.0.1.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA SHIELD Streaming",
+            "DisplayVersion": "7.1.0415",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Install Application",
+            "DisplayVersion": "2.1002.418.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20250123"
+        },
+        {
+            "DisplayName": "NVIDIA ABHub",
+            "DisplayVersion": "14.3.47.1",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Backend",
+            "DisplayVersion": "38.0.0.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Container",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA TelemetryApi helper for NvContainer",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA LocalSystem Container",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Message Bus for NvContainer",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA NetworkService Container",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVAPI Monitor plugin for NvContainer",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Session Container",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA User Container",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA NodeJS",
+            "DisplayVersion": "3.20.0.105",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Watchdog Plugin for NvContainer",
+            "DisplayVersion": "1.19",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Telemetry Client",
+            "DisplayVersion": "14.3.47.1",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Virtual Host Controller",
+            "DisplayVersion": "3.03.0.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "Nvidia Share",
+            "DisplayVersion": "3.20.0.105",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA ShadowPlay 3.20.0.105",
+            "DisplayVersion": "3.20.0.105",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA SHIELD Wireless Controller Driver",
+            "DisplayVersion": "3.20.0.85",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Update Core",
+            "DisplayVersion": "38.0.0.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "NVIDIA Virtual Audio 4.13.0.0",
+            "DisplayVersion": "4.13.0.0",
+            "Publisher": "NVIDIA Corporation",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 6.0.35 (x64_arm64)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Core Interpreter (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "osquery",
+            "DisplayVersion": "5.15.0",
+            "Publisher": "osquery",
+            "InstallDate": "20250206"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Tcl/Tk Support (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft Update Health Tools",
+            "DisplayVersion": "5.72.0.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20231111"
+        },
+        {
+            "DisplayName": "Microsoft .NET Runtime - 6.0.35 (x64)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 8.0.10 Shared Framework (x64)",
+            "DisplayVersion": "8.0.10.24468",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "AMD Settings",
+            "DisplayVersion": "2019.0807.2241.40847",
+            "Publisher": "Advanced Micro Devices, Inc.",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "vs_communityx64msi",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_minshellx64msi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2022 X64 Additional Runtime - 14.42.34433",
+            "DisplayVersion": "14.42.34433",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft .NET AppHost Pack - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft SQL Server 2019 LocalDB ",
+            "DisplayVersion": "15.0.4382.1",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 6.0.35 Shared Framework (x64)",
+            "DisplayVersion": "6.0.35.24462",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Toolset 8.0.403 (x64)",
+            "DisplayVersion": "32.8.55893",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core Module V2 for IIS Express",
+            "DisplayVersion": "17.0.22116.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "VS Script Debugging Common",
+            "DisplayVersion": "17.0.157.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Targeting Pack - 8.0.10 (x64)",
+            "DisplayVersion": "64.40.21605",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "VS WCF Debugging",
+            "DisplayVersion": "17.0.157.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "IntelliTraceProfilerProxy",
+            "DisplayVersion": "15.0.21225.01",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest (x64)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core Module for IIS Express",
+            "DisplayVersion": "12.2.18292.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python 3.13.1 Development Libraries (64-bit)",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Visual Studio Build Tools 2019",
+            "DisplayVersion": "16.11.42",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241216"
+        },
+        {
+            "DisplayName": "Visual Studio Community 2022",
+            "DisplayVersion": "17.11.5",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual Studio Build Tools 2017",
+            "DisplayVersion": "15.9.67",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241017"
+        },
+        {
+            "DisplayName": "Brave",
+            "DisplayVersion": "133.1.75.180",
+            "Publisher": "Brave Software Inc",
+            "InstallDate": "20250220"
+        },
+        {
+            "DisplayName": "Google Chrome",
+            "DisplayVersion": "133.0.6943.127",
+            "Publisher": "Google LLC",
+            "InstallDate": "20250221"
+        },
+        {
+            "DisplayName": "GnuWin32: Make-3.81",
+            "DisplayVersion": "3.81",
+            "Publisher": "GnuWin32",
+            "InstallDate": "20241119"
+        },
+        {
+            "DisplayName": "Microsoft Edge",
+            "DisplayVersion": "133.0.3065.82",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20250224"
+        },
+        {
+            "DisplayName": "Microsoft Edge WebView2 Runtime",
+            "DisplayVersion": "133.0.3065.82",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20250224"
+        },
+        {
+            "DisplayName": "Pocket Tanks v1.6",
+            "DisplayVersion": "1.6",
+            "Publisher": "Blitwise Productions, LLC",
+            "InstallDate": "20240802"
+        },
+        {
+            "DisplayName": "PyCharm Community Edition 2023.3.5",
+            "DisplayVersion": "233.15026.15",
+            "Publisher": "JetBrains s.r.o.",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "WildTangent Games",
+            "DisplayVersion": "1.1.1.47",
+            "Publisher": "WildTangent",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "WinSCP 6.3.6",
+            "DisplayVersion": "6.3.6",
+            "Publisher": "Martin Prikryl",
+            "InstallDate": "20250107"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2013 Redistributable (x64) - 12.0.40664",
+            "DisplayVersion": "12.0.40664.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Universal CRT Redistributable",
+            "DisplayVersion": "10.0.26624",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Runtime - 6.0.35 (x86)",
+            "DisplayVersion": "48.140.21525",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2022 X86 Additional Runtime - 14.40.33816",
+            "DisplayVersion": "14.40.33816",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Targeting Pack - 6.0.35 (x86)",
+            "DisplayVersion": "48.140.21525",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET CoreRuntime SDK",
+            "DisplayVersion": "1.1.27004.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.7.2 Targeting Pack",
+            "DisplayVersion": "4.7.03062",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_CoreEditorFonts",
+            "DisplayVersion": "17.7.40001",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework Cumulative Intellisense Pack for Visual Studio (ENU)",
+            "DisplayVersion": "4.8.09037",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Runtime - 8.0.10 (x86)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2022 X86 Debug Runtime - 14.40.33816",
+            "DisplayVersion": "14.40.33816",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "MobaXterm",
+            "DisplayVersion": "24.1.0.5208",
+            "Publisher": "Mobatek",
+            "InstallDate": "20240603"
+        },
+        {
+            "DisplayName": "vs_minshellsharedmsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.6 Targeting Pack",
+            "DisplayVersion": "4.6.00081",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "icecap_collectionresources",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT ARM64 Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Communication Foundation Diagnostic Pack for x86",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_tipsmsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "HP Audio Switch",
+            "DisplayVersion": "1.0.179.0",
+            "Publisher": "HP Inc.",
+            "InstallDate": "20191202"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 6.0.35 Targeting Pack (x86)",
+            "DisplayVersion": "6.0.35.24462",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 8.0.10 Shared Framework (x86)",
+            "DisplayVersion": "8.0.10.24468",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2015-2022 Redistributable (x86) - 14.40.33816",
+            "DisplayVersion": "14.40.33816.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "windows_toolscorepkg",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_vswebprotocolselectormsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET CoreRuntime For CoreCon",
+            "DisplayVersion": "1.0.0.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_filehandler_amd64",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "icecap_collection_neutral",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_filehandler_x86",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "HP Connection Optimizer",
+            "DisplayVersion": "2.0.15.0",
+            "Publisher": "HP Inc.",
+            "InstallDate": "20191202"
+        },
+        {
+            "DisplayName": "vs_clickoncesigntoolmsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_minshellmsires",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT Desktop Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Diagnostic Pack for Visual Studio",
+            "DisplayVersion": "17.11.231.19466",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Python Launcher",
+            "DisplayVersion": "3.13.1150.0",
+            "Publisher": "Python Software Foundation",
+            "InstallDate": "20250116"
+        },
+        {
+            "DisplayName": "Microsoft NetStandard SDK",
+            "DisplayVersion": "15.0.51105",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "icecap_collectionresourcesx64",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_Graphics_Singletonx86",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft TestPlatform SDK Local Feed",
+            "DisplayVersion": "17.10.0.9037153",
+            "Publisher": "Microsoft",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.42.34433",
+            "DisplayVersion": "14.42.34433.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "WildTangent ShortcutProvider",
+            "DisplayVersion": "7.0.0.285",
+            "Publisher": "WildTangent",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2013 x86 Minimum Runtime - 12.0.40664",
+            "DisplayVersion": "12.0.40664",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20231202"
+        },
+        {
+            "DisplayName": "vs_minshellinteropsharedmsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_clickoncebootstrappermsi",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Targeting Pack - 8.0.10 (x86)",
+            "DisplayVersion": "64.40.21605",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.8 SDK",
+            "DisplayVersion": "4.8.03928",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Host FX Resolver - 8.0.10 (x86)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 6.0.35 Shared Framework (x86)",
+            "DisplayVersion": "6.0.35.24462",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Web Tools Packages 17.0 - ENU",
+            "DisplayVersion": "17.0.40305.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT Appx Resource Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_SQLClickOnceBootstrappermsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2013 Redistributable (x86) - 12.0.40664",
+            "DisplayVersion": "12.0.40664.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.6.2 Targeting Pack",
+            "DisplayVersion": "4.6.01590",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "WildTangent Helper",
+            "DisplayVersion": "5.0.0.331",
+            "Publisher": "WildTangent",
+            "InstallDate": null
+        },
+        {
+            "DisplayName": "vs_communitysharedmsi",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.8 Targeting Pack (ENU)",
+            "DisplayVersion": "4.8.03761",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual Studio Setup WMI Provider",
+            "DisplayVersion": "3.11.2133.16870",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_githubprotocolhandlermsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "AMD Settings",
+            "DisplayVersion": "2019.0807.2241.40847",
+            "Publisher": "Advanced Micro Devices, Inc.",
+            "InstallDate": "20201004"
+        },
+        {
+            "DisplayName": "Adobe Refresh Manager",
+            "DisplayVersion": "1.8.0",
+            "Publisher": "Adobe Systems Incorporated",
+            "InstallDate": "20250127"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.7.2 Targeting Pack (ENU)",
+            "DisplayVersion": "4.7.03062",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_clickoncebootstrappermsires",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.8 Targeting Pack",
+            "DisplayVersion": "4.8.03761",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Runtime - 6.0.35 (x86)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "ClickOnce Bootstrapper Package for Microsoft .NET Framework",
+            "DisplayVersion": "4.8.09256",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "VS Immersive Activate Helper",
+            "DisplayVersion": "17.0.157.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Targeting Pack - 8.0.10 (x86)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft UniversalWindowsPlatform SDK",
+            "DisplayVersion": "15.9.16",
+            "Publisher": "Microsoft",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Framework 4.6.2 Targeting Pack (ENU)",
+            "DisplayVersion": "4.6.01590",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "IntelliTraceProfilerProxy",
+            "DisplayVersion": "15.0.21225.01",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Targeting Pack - 6.0.35 (x86)",
+            "DisplayVersion": "48.140.21458",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_communitymsires",
+            "DisplayVersion": "17.11.35103",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2013 x86 Additional Runtime - 12.0.40664",
+            "DisplayVersion": "12.0.40664",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20231202"
+        },
+        {
+            "DisplayName": "Microsoft Visual C++ 2022 X86 Minimum Runtime - 14.40.33816",
+            "DisplayVersion": "14.40.33816",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT Desktop Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Host - 8.0.10 (x86)",
+            "DisplayVersion": "64.40.21578",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT ARM64 Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Visual Studio Setup Configuration",
+            "DisplayVersion": "3.11.2133.16870",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft .NET Native SDK",
+            "DisplayVersion": "15.0.24211.07",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Windows SDK AddOn",
+            "DisplayVersion": "10.1.0.0",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_FileTracker_Singleton",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vcpp_crt.redist.clickonce",
+            "DisplayVersion": "14.40.33816",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft Windows Desktop Runtime - 8.0.10 (x86)",
+            "DisplayVersion": "64.40.21605",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_BlendMsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "vs_devenvsharedmsi",
+            "DisplayVersion": "17.11.35102",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Microsoft ASP.NET Core 8.0.10 Targeting Pack (x86)",
+            "DisplayVersion": "8.0.10.24468",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        },
+        {
+            "DisplayName": "Visual C++ Library CRT Desktop Appx Package",
+            "DisplayVersion": "14.41.34120",
+            "Publisher": "Microsoft Corporation",
+            "InstallDate": "20241015"
+        }
+    ]
+}

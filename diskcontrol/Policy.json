@@ -1,0 +1,26 @@
+{"policy_id": "2ec6695b-d83d-43e9-8a6b-8c081751f1f1",
+"name": "TEST POL",
+"description": "test policy deemasc",
+"status": "Active",
+"severity": "High",
+"pattern": {"id": "None", "name": "None", "type": "None", "input": "None"
+    },
+"file": {"id": "None", "name":"None","type":"None", "size":"None", "age":"None"
+    },
+"action": {"channel_action": {"network_channels": {"Email": {"action": "", "included": [], "excluded": []
+                }, "FTP": {"action": "", "included": [], "excluded": []
+                }, "HTTP/S": {"action": "", "included": [], "excluded": []
+                }, "Chat": {"action": "Always Permitted", "included": [], "excluded": []
+                }, "Plaintext": {"action": "Always Permitted", "included": [], "excluded": []
+                }
+            }, "endpoint_channels": {"Apps": {"action": "", "included": [], "excluded": []
+                }, "RemovableDrives": {"action": "Block", "included": ["*"], "excluded": []
+                }, "LocalDrives": {"action": "Pass", "included": ["*"], "excluded": []
+                }, "Directories": {"action": "", "included": [], "excluded": []
+                }, "LAN": {"action": "", "included": [], "excluded": []
+                }, "Printing": {"action": "", "included": [], "excluded": []
+                }
+            }
+        }
+    }
+}

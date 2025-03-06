@@ -24,25 +24,30 @@
 using json = nlohmann::json;
 json lastValidPolicy;
 // Function to load only the "Drive Lock Policy" section from policy.json
-json LoadDriveLockPolicy() {
-    std::ifstream file("Policy.json");
-    json policy;
-    
-    if (!file.is_open()) {
-        std::cerr << "Failed to open policy.json" << std::endl;
-        return {};
-    }
-
-    try {
-        file >> policy;
-        file.close();
-        return policy; 
-    } catch (const std::exception& e) {
-        std::cerr << "Error parsing JSON: " << e.what() << std::endl;
-    }
-
-    return {}; // Return empty if not found
-}
+json LoadDriveLockPolicy() { 
+    std::ifstream file("Policy.json"); 
+    json policies; 
+     
+    if (!file.is_open()) { 
+        std::cerr << "Failed to open Policy.json" << std::endl; 
+        return {}; 
+    } 
+ 
+    try { 
+        file >> policies; 
+        file.close(); 
+    } catch (const std::exception& e) { 
+        std::cerr << "Error parsing JSON: " << e.what() << std::endl; 
+        return {}; 
+    } 
+ 
+    // If the JSON isn't an array, wrap it into an array.
+    if (!policies.is_array()) { 
+        policies = json::array({ policies }); 
+    } 
+ 
+    return policies;  
+} 
 // Function to validate the policy format
 // Modified isValidDriveLockPolicy function
 bool isValidDriveLockPolicy(const json& policyData) {
@@ -810,9 +815,11 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
 }
 
 // Modified runPolicyEnforcementLoop function
-void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availableDrives, atomic<bool>& stopFlag) {
+
+// Modified runPolicyEnforcementLoop function
+void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availableDrives, atomic<bool>& stopFlag,const string& policyId) {
     while (!stopFlag.load()) {// Keep running until stopFlag becomes true
-        json policyData = LoadDriveLockPolicy();
+        json policies = LoadDriveLockPolicy(); 
         // cout<< "Policy Data: "<<policyData<<endl;
         
         vector<wstring> AvailableRemovableDrives;
@@ -824,22 +831,30 @@ void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availa
         }
 
         // If policy is invalid, continue using the last valid policy
-        if (policyData.empty() || !isValidDriveLockPolicy(policyData)) {
-            std::cerr << "Invalid or missing policy data, continuing with last valid policy." << std::endl;
-            policyData = lastValidPolicy;
-        } else {
-            if (policyData != lastValidPolicy) {
-                enforceDriveLockPolicy(policyData, availableDrives, AvailableRemovableDrives);
-                lastValidPolicy = policyData;
-            } else {
-                std::cout << "No policy change detected." << std::endl;
+        if (policies.empty() || !policies.is_array()) { 
+            std::cerr << "Invalid or missing policy data, continuing with last valid policies." << std::endl; 
+            policies = lastValidPolicy; 
+        } 
+        if (policies != lastValidPolicy) { 
+            for (const auto& policy : policies) { 
+                if(policy["policy_id"] == policyId){
+                if (!isValidDriveLockPolicy(policy)) { 
+                    std::cerr << "Invalid policy detected, skipping." << std::endl; 
+                    continue; 
+                } 
+                // Enforce the current policy 
+                enforceDriveLockPolicy(policy, availableDrives, AvailableRemovableDrives); 
             }
-        }
-
-        // Sleep for the specified interval before running again
-        std::this_thread::sleep_for(std::chrono::seconds(intervalSeconds));
-    }
-    cout << "Policy enforcement loop stopping." << endl;
+            } 
+            lastValidPolicy = policies; 
+        } else { 
+            std::cout << "No policy change detected." << std::endl; 
+        } 
+ 
+        // Sleep for the specified interval before running again 
+        std::this_thread::sleep_for(std::chrono::seconds(intervalSeconds)); 
+    } 
+    cout << "Policy enforcement loop stopping." << endl; 
 }
 
 

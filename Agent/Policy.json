@@ -1,26 +1,186 @@
-{"policy_id": "2ec6695b-d83d-43e9-8a6b-8c081751f1f1",
-"name": "TEST POL",
-"description": "test policy deemasc",
-"status": "Active",
-"severity": "High",
-"pattern": {"id": "None", "name": "None", "type": "None", "input": "None"
-    },
-"file": {"id": "None", "name":"None","type":"None", "size":"None", "age":"None"
-    },
-"action": {"channel_action": {"network_channels": {"Email": {"action": "", "included": [], "excluded": []
-                }, "FTP": {"action": "", "included": [], "excluded": []
-                }, "HTTP/S": {"action": "", "included": [], "excluded": []
-                }, "Chat": {"action": "Always Permitted", "included": [], "excluded": []
-                }, "Plaintext": {"action": "Always Permitted", "included": [], "excluded": []
-                }
-            }, "endpoint_channels": {"Apps": {"action": "", "included": [], "excluded": []
-                }, "RemovableDrives": {"action": "Allow", "included": ["*"], "excluded": []
-                }, "LocalDrives": {"action": "Allow", "included": ["*"], "excluded": [""]
-                }, "Directories": {"action": "", "included": [], "excluded": []
-                }, "LAN": {"action": "", "included": [], "excluded": []
-                }, "Printing": {"action": "", "included": [], "excluded": []
-                }
-            }
+[
+    {
+      "policy_id": "1b383657-742b-461f-9b11-6362f2e82987",
+      "name": "Block File Upload",
+      "description": "Prevents file uploads via browsers",
+      "status": "Active",
+      "severity": "High",
+      "patterns": [
+        {
+          "id": "f18cd3e2-a867-40be-9937-26d92c28a79c",
+          "name": "test",
+          "type": {
+            "keywords": ["bomb", "attack"],
+            "regex": [
+              "b(?P<card>(?:\\\\d{4}[- ]?){4})\\\\b",
+              "serfresdf",
+              "aerrfserfgse",
+              "aewfserf",
+              "erfser"
+            ],
+            "ML": []
+          }
         }
-    }
-}
+      ],
+      "files": [],
+      "action": {
+        "channel_action": {
+          "network_channels": {
+            "Email": {
+              "action": "Allow",
+              "included": ["network", "channel"],
+              "excluded": ["email", "excluded"]
+            },
+            "FTP": {
+              "action": "Block",
+              "included": ["ftp", "channel"],
+              "excluded": ["ftp", "excluded"]
+            },
+            "HTTP/S": {
+              "action": "Allow",
+              "included": ["abcd"],
+              "excluded": ["efgh"]
+            },
+            "Chat": {
+              "action": "Block",
+              "included": ["ijkl"],
+              "excluded": ["mnop"]
+            },
+            "Plaintext": {
+              "action": "Allow",
+              "included": ["qrstuv", "bbhdia"],
+              "excluded": ["dakdfkal", "dfdkla"]
+            }
+          },
+          "endpoint_channels": {
+            "Apps": {
+              "action": "Block",
+              "included": ["dhjkl"],
+              "excluded": ["dfghjk"]
+            },
+            "RemovableDrives": {
+              "action": "Block",
+              "included": ["*"],
+              "excluded": [""]
+            },
+            "LocalDrives": {
+              "action": "Allow",
+              "included": ["D:\\"],
+              "excluded": []
+            },
+            "Directories": {
+              "action": "Allow",
+              "included": ["qwertyu"],
+              "excluded": ["vghjkl"]
+            },
+            "LAN": {
+              "action": "Block",
+              "included": ["dfghjk"],
+              "excluded": ["cvbnm"]
+            },
+            "Bluetooth": { "action": "Block", "included": ["*"], "excluded": [] }
+          }
+        },
+        "schedule": {
+          "id": "7a36fc8d-e8cc-4942-9510-21f7dc785711",
+          "cron_expression": null,
+          "recurrence": "Weekly",
+          "start_time": "2025-02-20T15:54:00",
+          "end_time": "2025-02-20T22:55:00",
+          "days_of_week": ["Monday", "Wednesday", "Thursday", "Saturday"]
+        }
+      }
+    },
+    {
+        "policy_id": "1b793657-742b-461f-8h11-6362f2e82987",
+        "name": "Block File Upload",
+        "description": "Prevents file uploads via browsers",
+        "status": "Active",
+        "severity": "High",
+        "patterns": [
+          {
+            "id": "f18cd3e2-a867-40be-9937-26d92c28a79c",
+            "name": "test",
+            "type": {
+              "keywords": ["bomb", "attack"],
+              "regex": [
+                "b(?P<card>(?:\\\\d{4}[- ]?){4})\\\\b",
+                "serfresdf",
+                "aerrfserfgse",
+                "aewfserf",
+                "erfser"
+              ],
+              "ML": []
+            }
+          }
+        ],
+        "files": [],
+        "action": {
+          "channel_action": {
+            "network_channels": {
+              "Email": {
+                "action": "Allow",
+                "included": ["network", "channel"],
+                "excluded": ["email", "excluded"]
+              },
+              "FTP": {
+                "action": "Block",
+                "included": ["ftp", "channel"],
+                "excluded": ["ftp", "excluded"]
+              },
+              "HTTP/S": {
+                "action": "Allow",
+                "included": ["abcd"],
+                "excluded": ["efgh"]
+              },
+              "Chat": {
+                "action": "Block",
+                "included": ["ijkl"],
+                "excluded": ["mnop"]
+              },
+              "Plaintext": {
+                "action": "Allow",
+                "included": ["qrstuv", "bbhdia"],
+                "excluded": ["dakdfkal", "dfdkla"]
+              }
+            },
+            "endpoint_channels": {
+              "Apps": {
+                "action": "Block",
+                "included": ["dhjkl"],
+                "excluded": ["dfghjk"]
+              },
+              "RemovableDrives": {
+                "action": "Block",
+                "included": ["*"],
+                "excluded": [""]
+              },
+              "LocalDrives": {
+                "action": "Allow",
+                "included": ["D:\\"],
+                "excluded": [""]
+              },
+              "Directories": {
+                "action": "Allow",
+                "included": ["qwertyu"],
+                "excluded": ["vghjkl"]
+              },
+              "LAN": {
+                "action": "Block",
+                "included": ["dfghjk"],
+                "excluded": ["cvbnm"]
+              },
+              "Bluetooth": { "action": "Block", "included": ["*"], "excluded": [] }
+            }
+          },
+          "schedule": {
+            "id": "7a36fc8d-e8cc-4942-9510-21f7dc785711",
+            "cron_expression": null,
+            "recurrence": "Weekly",
+            "start_time": "2025-02-20T15:54:00",
+            "end_time": "2025-02-20T17:53:00",
+            "days_of_week": ["Monday", "Wednesday", "Thursday", "Saturday"]
+          }
+        }
+      }
+  ]

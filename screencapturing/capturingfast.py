@@ -40,6 +40,63 @@ class FastScreenCapture:
         logger.info(f"Primary monitor: {self.primary_monitor['width']}x{self.primary_monitor['height']}")
         logger.info(f"Total monitors detected: {len(self.monitors)-1}")
     
+    def record_screen(self, output="output.mp4", crop_rect=None, buffer_seconds=5):
+        """
+        Records the previous 5 seconds of screen activity and saves to a video file
+        without using OpenCV GUI functionality.
+        
+        Args:
+            output (str): Output video filename
+            crop_rect (tuple, optional): Region to capture (left, top, width, height)
+            buffer_seconds (int): Number of seconds to keep in buffer (default 5)
+        """
+        sct = mss.mss()
+        # Default to primary monitor if no crop_rect provided
+        if crop_rect is None:
+            monitor = sct.monitors[1]
+        else:
+            # crop_rect: (left, top, width, height)
+            monitor = {"left": crop_rect[0], "top": crop_rect[1],
+                    "width": crop_rect[2], "height": crop_rect[3]}
+                
+        # Set up parameters
+        fps = 20
+        buffer_size = fps * buffer_seconds  # Number of frames to keep in buffer
+        frame_buffer = []
+        
+        # Set up VideoWriter
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        
+        try:
+            print(f"Starting buffer recording for {buffer_seconds} seconds...")
+            
+            # Continuously capture frames for buffer_seconds
+            start_time = time.time()
+            while time.time() - start_time < buffer_seconds:
+                # Capture frame
+                img = np.array(sct.grab(monitor))
+                frame = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+                
+                # Add to buffer
+                frame_buffer.append(frame)
+                
+                # Control frame rate
+                time.sleep(1/fps)
+            
+            # Save the buffer to video file
+            out = cv2.VideoWriter(output, fourcc, fps, (monitor["width"], monitor["height"]))
+            print(f"Saving {buffer_seconds} seconds of recording to {output}...")
+            
+            for frame in frame_buffer:
+                out.write(frame)
+                
+            out.release()
+            print(f"Video saved to {output}")
+            
+        except Exception as e:
+            print(f"Error in recording: {e}")
+
+
     def capture_screen(self, monitor_num=1, filename=None):
         try:
             # Capture the monitor
@@ -149,138 +206,6 @@ class FastScreenCapture:
         self.mss.close()
 
 
-class AdvancedScreenMonitor:
-    """High-performance screen monitor with advanced features"""
-    
-    def __init__(self):
-        """Initialize the monitor"""
-        self.capture = FastScreenCapture()
-        self.running = False
-        self.thread = None
-        self.previous_frame = None
-        self.change_regions = []  # Track regions that changed
-        
-        # Configuration
-        self.interval = 0.5  # seconds
-        self.threshold = 0.01  # 1% change
-        self.region_size = 50  # Divide screen into regions of this size
-        self.min_region_threshold = 5  # Minimum number of changed pixels in a region
-    
-    def set_region_analysis(self, region_size=50, min_region_threshold=5):
-        """Configure region-based analysis settings
-        
-        Args:
-            region_size: Size of regions for detection (smaller = more precise but slower)
-            min_region_threshold: Minimum pixel changes needed in a region
-        """
-        self.region_size = region_size
-        self.min_region_threshold = min_region_threshold
-    
-    def _compare_frames_region(self, frame1, frame2):
-        """Compare two frames using region-based analysis for better change detection
-        
-        Returns:
-            (bool, list): Changed status and list of changed regions
-        """
-        if frame1 is None or frame2 is None or frame1.shape != frame2.shape:
-            return True, []
-        
-        # Convert to grayscale for faster comparison
-        gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-        gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-        
-        # Calculate absolute difference
-        diff = cv2.absdiff(gray1, gray2)
-        
-        # Apply threshold to get significant changes
-        _, thresh = cv2.threshold(diff, 30, 255, cv2.THRESH_BINARY)
-        
-        # Analyze by regions
-        height, width = thresh.shape
-        changed_regions = []
-        total_changed_regions = 0
-        
-        # Loop through regions
-        for y in range(0, height, self.region_size):
-            for x in range(0, width, self.region_size):
-                # Extract region
-                region = thresh[y:min(y + self.region_size, height), 
-                                x:min(x + self.region_size, width)]
-                
-                # Count changed pixels in region
-                changed_pixels = np.count_nonzero(region)
-                
-                if changed_pixels > self.min_region_threshold:
-                    # Region has significant change
-                    changed_regions.append((x, y, 
-                                          min(x + self.region_size, width), 
-                                          min(y + self.region_size, height)))
-                    total_changed_regions += 1
-        
-        # Calculate percentage of changed regions
-        total_regions = (height // self.region_size + 1) * (width // self.region_size + 1)
-        change_percentage = total_changed_regions / total_regions
-        
-        # Store changed regions for potential use
-        self.change_regions = changed_regions
-        
-        return change_percentage > self.threshold, changed_regions
-    
-    def start_monitoring(self, interval=0.5, threshold=0.01, on_change=None):
-        """Start monitoring for screen changes
-        
-        Args:
-            interval: Time between captures in seconds
-            threshold: Percentage of regions that need to change
-            on_change: Callback that receives the new frame and list of changed regions
-        """
-        if self.running:
-            logger.warning("Monitor already running")
-            return
-        
-        self.interval = interval
-        self.threshold = threshold
-        self.running = True
-        
-        # Create and start monitoring thread
-        self.thread = threading.Thread(
-            target=self._monitor_thread,
-            args=(on_change,),
-            daemon=True
-        )
-        self.thread.start()
-        logger.info(f"Started advanced monitoring with interval={interval}s, threshold={threshold}")
-    
-    def _monitor_thread(self, on_change):
-        """Background thread that monitors for screen changes"""
-        self.previous_frame = self.capture.capture_screen()
-        
-        while self.running:
-            time.sleep(self.interval)
-            
-            # Capture current frame
-            current_frame = self.capture.capture_screen()
-            
-            # Check if frame changed beyond threshold
-            changed, regions = self._compare_frames_region(self.previous_frame, current_frame)
-            
-            if changed:
-                logger.info(f"Screen change detected in {len(regions)} regions")
-                
-                if on_change:
-                    on_change(current_frame, regions)
-            
-            self.previous_frame = current_frame
-    
-    def stop_monitoring(self):
-        """Stop the monitoring thread"""
-        self.running = False
-        if self.thread:
-            self.thread.join(timeout=2.0)
-        self.capture.close()
-        logger.info("Advanced monitoring stopped")
-
-
 class EnhancedDLPMonitor:
     """Enhanced Data Loss Prevention monitor with multiple detection methods"""
     
@@ -332,9 +257,11 @@ class EnhancedDLPMonitor:
                 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{self.config['screenshot_dir']}/violation_{timestamp}_{reason.replace(' ', '_')[:50]}.png"
-                
+        file_mp4 = f"{self.config['screenshot_dir']}/violation_{timestamp}_{reason.replace(' ', '_')[:50]}.mp4"        
         # Capture and save screenshot
+        
         screenshot = self.capture.capture_screen(filename=filename)
+        recording = self.capture.record_screen(output=file_mp4)
         
         # Verify screenshot was saved
         if not os.path.exists(filename):
@@ -359,166 +286,13 @@ class EnhancedDLPMonitor:
                     
         return filename
     
-    def _check_clipboard(self):
-        """Check if clipboard content has changed"""
-        if not self.config["monitor_clipboard"]:
-            return False
-        
-        try:
-            win32clipboard.OpenClipboard()
-            
-            # Try different clipboard formats
-            formats = [win32clipboard.CF_UNICODETEXT, win32clipboard.CF_TEXT]
-            current_content = None
-            
-            for fmt in formats:
-                try:
-                    current_content = win32clipboard.GetClipboardData(fmt)
-                    break
-                except:
-                    pass
-            
-            win32clipboard.CloseClipboard()
-            
-            # Check if content has changed
-            if self.last_clipboard_content is not None and current_content != self.last_clipboard_content:
-                self.last_clipboard_content = current_content
-                return True
-            
-            self.last_clipboard_content = current_content
-            return False
-        except Exception as e:
-            logger.error(f"Error checking clipboard: {e}")
-            return False
-    
-    def _check_window_title(self):
-        """Check if active window has sensitive title"""
-        if not self.config["monitor_window_titles"]:
-            return None
-        
-        try:
-            # Get active window handle and title
-            hwnd = win32gui.GetForegroundWindow()
-            title = win32gui.GetWindowText(hwnd).lower()
-            
-            # Store for metadata
-            self.last_active_window = title
-            
-            # Only check if title is different from last time
-            if title == self.last_active_window:
-                return None
-            
-            # Check if title contains any sensitive terms
-            for sensitive_term in self.config["sensitive_window_titles"]:
-                if sensitive_term in title:
-                    return sensitive_term
-            
-            return None
-        except Exception as e:
-            logger.error(f"Error checking window title: {e}")
-            return None
-    
-    def start_monitoring(self, on_violation=None):
-        """Start DLP monitoring
-        
-        Args:
-            on_violation: Callback that receives violation reason and evidence path
-        """
-        if self.running:
-            logger.warning("DLP monitor already running")
-            return
-        
-        # Initialize state
-        self.running = True
-        self.violation_count = 0
-        
-        # Get initial clipboard content
-        if self.config["monitor_clipboard"]:
-            try:
-                win32clipboard.OpenClipboard()
-                try:
-                    self.last_clipboard_content = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
-                except:
-                    try:
-                        self.last_clipboard_content = win32clipboard.GetClipboardData(win32clipboard.CF_TEXT)
-                    except:
-                        self.last_clipboard_content = None
-                win32clipboard.CloseClipboard()
-            except:
-                self.last_clipboard_content = None
-        
-        # Get initial active window
-        try:
-            hwnd = win32gui.GetForegroundWindow()
-            self.last_active_window = win32gui.GetWindowText(hwnd).lower()
-        except:
-            self.last_active_window = None
-        
-        # Create and start monitoring thread
-        self.thread = threading.Thread(
-            target=self._monitor_thread,
-            args=(on_violation,),
-            daemon=True
-        )
-        self.thread.start()
-        logger.info("Started enhanced DLP monitoring")
-    
-    def _monitor_thread(self, on_violation):
-        """Background thread that monitors for DLP violations"""
-        while self.running:
-            time.sleep(0.5)  # Check every 500ms
-            
-            # Check for clipboard changes
-            if self._check_clipboard():
-                reason = "Clipboard content changed"
-                logger.warning(f"DLP VIOLATION: {reason}")
-                
-                self.violation_count += 1
-                evidence_path = self.save_evidence("clipboard")
-                
-                if on_violation:
-                    on_violation(reason, evidence_path)
-            
-            # Check for sensitive window titles
-            sensitive_term = self._check_window_title()
-            if sensitive_term:
-                reason = f"Sensitive window detected: '{sensitive_term}'"
-                logger.warning(f"DLP VIOLATION: {reason}")
-                
-                self.violation_count += 1
-                evidence_path = self._save_evidence(sensitive_term)
-                
-                if on_violation:
-                    on_violation(reason, evidence_path)
-    
-    def stop_monitoring(self):
-        """Stop the DLP monitoring thread"""
-        self.running = False
-        if self.thread:
-            self.thread.join(timeout=2.0)
-        
-        # Close capture resources
-        self.capture.close()
-        logger.info(f"Enhanced DLP monitoring stopped. Total violations: {self.violation_count}")
-        
-        return self.violation_count
-
-def test_screenshot():
-    capture = FastScreenCapture()
-    test_file = os.path.abspath("test_screenshot.png")
-    print(f"Saving to absolute path: {test_file}")
-    screenshot = capture.capture_screen(filename=test_file)
-    print(f"Screenshot captured: {screenshot is not None}")
-    print(f"File exists: {os.path.exists(test_file)}")
-    if os.path.exists(test_file):
-        print(f"File size: {os.path.getsize(test_file)} bytes")
-    return screenshot, test_file
+   
 
 # Example usage
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
 # Call this function to test in isolation
-    test_result, test_file = test_screenshot()
+    # test_result, test_file = test_screenshot()
     # print("Advanced Python Screen Capture and DLP Monitor")
     # print("---------------------------------------------")
     

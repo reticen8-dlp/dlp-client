@@ -29,6 +29,14 @@ import sys,os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from screencapturing.capturingfast import EnhancedDLPMonitor
 
+
+
+from gRPC.client import register_client
+from gRPC.logger import send_log
+
+
+
+
 CLSCTX_ALL = 0x00000001 + 0x00000002 + 0x00000004
 
 def show_notification(title, message):
@@ -80,20 +88,35 @@ def show_notification(title, message):
 
 def detect_sensitive_data(text):
     detected = {}
-    # Search using regex patterns
-    for category, pattern in PATTERNS["regex"].items():
-        matches = re.findall(pattern, text)
-        if matches:
-            detected[category] = matches
-
-    # Search for keyword matches
-    for category, keywords in PATTERNS["keywords"].items():
-        keyword_matches = [kw for kw in keywords if kw in text]
-        if keyword_matches:
-            detected[category] = detected.get(category, []) + keyword_matches  # Append to existing matches
-
+    
     try:
+        print("PATTERNS keywords:", PATTERNS["keywords"],PATTERNS["regex"])
+        print("Text being analyzed:", text)
         
+        # Search using regex patterns
+        if isinstance(PATTERNS, dict) and "regex" in PATTERNS and "keywords" in PATTERNS:
+            # Search using regex patterns
+            if isinstance(PATTERNS["regex"], dict):
+                for category, pattern_list in PATTERNS["regex"].items():
+                    if isinstance(pattern_list, list):
+                        for pattern in pattern_list:
+                            if isinstance(pattern, str):  # Ensure the pattern is a string
+                                matches = re.findall(pattern, text)
+                                if matches:
+                                    detected[category] = matches
+                    elif isinstance(pattern_list, str):  # Handle case where pattern is a single string
+                        matches = re.findall(pattern_list, text)
+                        if matches:
+                            detected[category] = matches
+            
+            # Search for keyword matches
+            if isinstance(PATTERNS["keywords"], dict):
+                for category, keywords in PATTERNS["keywords"].items():
+                    if isinstance(keywords, list):  # Ensure keywords is a list
+                        keyword_matches = [kw for kw in keywords if kw in text]
+                        if keyword_matches:
+                            detected[category] = detected.get(category, []) + keyword_matches
+        print(f"detected: {detected}")
         # result = subprocess.run([sys.executable , "sensitivepermissions/file_fingerprinting.py","scan","--text",text,"--db","Proprium_dlp.db"], capture_output=True, text=True, encoding="utf-8")
         # output = result.stdout
         print("scaning files")
@@ -218,7 +241,7 @@ class Clipboard():
             print("Error clearing clipboard:", e)
 
     def monitor_clipboard_content(self):
-        
+        last_clipboard_data = ""
         while True:
             try:
                 # Check current clipboard content
@@ -228,18 +251,25 @@ class Clipboard():
                     clipboard_content = ""
                     print("Error accessing clipboard")
                 
-                if clipboard_content :
+                if clipboard_content and clipboard_content != last_clipboard_data:
+                    # print(f"Clipboard content: {clipboard_content}")
                     last_clipboard_data = clipboard_content
                     
                     # Check for sensitive data in current clipboard
                     current_time =time.time()
+                    print(f"content: {clipboard_content}")
+                    # print(f"detecting sensitive data: {detect_sensitive_data(clipboard_content))}")
                     detected = detect_sensitive_data(clipboard_content)
                     if detected:
                         screen_monitor = EnhancedDLPMonitor()
+                        self.overwrite_and_clear_clipboard()
+                        client_id,agent_id = register_client()
+                        if client_id:
+                            send_log(client_id, agent_id, "WARNING", f"sensitive data is present in: {clipboard_content} detected data: {str(detected)}")  
                         print(f"-------Time Sensitive data detected: {time.time()-current_time} {detected}")
                         image_path = screen_monitor.save_evidence("clipboard")
                         print(f"Image path: {image_path}")
-                        self.overwrite_and_clear_clipboard()
+                        
                 time.sleep(1)
             
             except Exception as e:
@@ -305,22 +335,23 @@ class clipboardHistory:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Monitor clipboard for sensitive data')
-    # parser.add_argument('-p', '--patterns',required=True , help='patterns to detect')
-    # parser.add_argument("-db","--db_path",default="Proprium_dlp.db",help='db where scanned data is stored')
-    PATTERNS = { 
-    "keywords": { 
-        "email": ["gmail", "yahoo", "hotmail"], 
-        "credit-card": ["visa", "mastercard", "amex"] 
-    }, 
-    "regex": { 
-        "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", 
-        "credit-card": r"\b\d{4}-\d{4}-\d{4}-\d{4}\b" 
-    } 
-    }
-    db_path = "Proprium_dlp.db"
+    parser.add_argument('-p', '--patterns',required=True , help='patterns to detect')
+    parser.add_argument("-db","--db_path",default="Proprium_dlp.db",help='db where scanned data is stored')
+    # PATTERNS = { 
+    # "keywords": { 
+    #     "email": ["gmail", "yahoo", "hotmail"], 
+    #     "credit-card": ["visa", "mastercard", "amex"] 
+    # }, 
+    # "regex": { 
+    #     "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", 
+    #     "credit-card": r"\b\d{4}-\d{4}-\d{4}-\d{4}\b" 
+    # } 
+    # }
+    # db_path = "Proprium_dlp.db"
     args = parser.parse_args()
-    # PATTERNS = args.patterns
-    # db_path = args.db_path
+    PATTERNS = json.loads(args.patterns)
+    db_path = args.db_path
+    print(f"Patterns: {PATTERNS}")
     scan_data = scan_sesnitive_data(db_path)
     DATA = scan_data.load_index(db_path)
     # print(data)

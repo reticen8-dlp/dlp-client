@@ -31,6 +31,14 @@ import subprocess
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+from gRPC.client import register_client
+from gRPC.logger import send_log
+
+def logmessage(level,message):
+    client_id,agent_id = register_client()
+    if client_id:
+        send_log(client_id, agent_id,level, message)  
+
 
 class TextExtractor:
     def __init__(self, file_path: str):
@@ -640,7 +648,7 @@ class NewFileHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory:
             file_path = event.src_path
-            print(f"New file detected: {file_path}")
+            print(f"New file created: {file_path}")
             has_sensitive_data = self.indexer.process_single_file(file_path)
             print(f"File {file_path} indexed with sensitive data status: {has_sensitive_data}")
     
@@ -705,7 +713,15 @@ def main():
             # with open(r"C:\Users\Shreshth Graak\reticen\VIVEK\dlp\indexing\final\patterns.json", 'r') as file:
             #     data = json.load(file)
             # patterns = data
-            target_directories = json.loads(args.directories)  # Parse directories as a list
+            print(f"in {args.directories}")
+            
+            try:
+                target_directories = json.loads(args.directories)
+                print(f"innn {json.loads(args.directories)}")
+            except json.JSONDecodeError as e:
+                print(f"Error decoding directories argument: {e}")
+                sys.exit(1)  # Parse directories as a list
+            # target_directories = args.directories
             if not isinstance(target_directories, list):
                 raise ValueError("Directories argument must be a list.")
         

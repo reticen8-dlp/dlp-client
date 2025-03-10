@@ -1,7 +1,7 @@
 import re
 import time
 import pyperclip
-import win32clipboard
+import win32clipboard 
 import json
 import uuid
 import winreg
@@ -21,36 +21,63 @@ import ctypes
 import ctypes.wintypes
 from ctypes import windll, byref, Structure, POINTER, WINFUNCTYPE
 from ctypes.wintypes import DWORD, HWND, UINT, WPARAM, LPARAM, BOOL
-import win32con
 import win32api
+import win32con
 import win32gui
+import win32gui_struct
+# import pywintypes
 from datetime import datetime
 import sys,os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from screencapturing.capturingfast import EnhancedDLPMonitor
 
-
-
 from gRPC.client import register_client
 from gRPC.logger import send_log
 
-
-
-
 CLSCTX_ALL = 0x00000001 + 0x00000002 + 0x00000004
 
+def log_message(level,message):
+    if os.path.exists("client_id.txt"):
+        with open("client_id.txt", "r") as file:
+            client_id = file.read().strip()
+    else:
+        client_id,_ = register_client()    
+    os.system(f'echo "Here at client {client_id}" >> logfile.txt')            
+    if client_id:
+        send_log(client_id, "agent-008",level, message)  
+                        
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS  # PyInstaller temporary folder
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+DELETE_CLIPBOARD_ITEM =resource_path(os.path.join("monitoring", "delete_clipboard_item.ps1")) 
+
+GET_CLIPBOARD_ITEM = resource_path(os.path.join("monitoring", "get_clipboard_history.ps1"))
+
 def show_notification(title, message):
+
+    try:
+        toaster = ToastNotifier()
+        toaster.show_toast(title, message, duration=1, threaded=True)
+        return
+    except Exception as e:
+        print(f"win10toast notification failed: {e}")
+
+
     """Display a Windows notification in the system tray"""
     # Define balloon tip icons
     NIIF_INFO = 0x00000001
     NIIF_WARNING = 0x00000002
     
     # Try to find an existing notification window to reuse
-    hwnd = win32gui.FindWindow(None, "ClipboardSecurityNotification")
+    hwnd = win32gui.FindWindow(None, "Reticen8-DLP")
     if not hwnd:
         # Create a window for notifications
         wc = win32gui.WNDCLASS()
-        wc.lpszClassName = "ClipboardSecurityNotificationClass"
+        wc.lpszClassName = "NotificationWindow"
         wc.lpfnWndProc = lambda *args: None
         wc.hInstance = win32api.GetModuleHandle(None)
         wc.hIcon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
@@ -60,7 +87,7 @@ def show_notification(title, message):
         try:
             class_atom = win32gui.RegisterClass(wc)
             hwnd = win32gui.CreateWindow(
-                class_atom, "ClipboardSecurityNotification", 0, 0, 0, 
+                class_atom, "Reticen8-DLP", 0, 0, 0, 
                 win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, 
                 0, 0, wc.hInstance, None
             )
@@ -86,7 +113,9 @@ def show_notification(title, message):
         except Exception as e:
             print(f"Error showing notification: {e}")
 
-def detect_sensitive_data(text):
+
+
+def detect_sensitive_data(text, PATTERNS):
     detected = {}
     
     try:
@@ -117,19 +146,20 @@ def detect_sensitive_data(text):
                         if keyword_matches:
                             detected[category] = detected.get(category, []) + keyword_matches
         print(f"detected: {detected}")
+        os.system(f'echo "Here at detected: {detected}" >> logfile.txt')
         # result = subprocess.run([sys.executable , "sensitivepermissions/file_fingerprinting.py","scan","--text",text,"--db","Proprium_dlp.db"], capture_output=True, text=True, encoding="utf-8")
         # output = result.stdout
-        print("scaning files")
-        result = scan_data.scan_file(text,DATA)
-        output = result
-        print(f"output: {output}")
-            # Parse the output and check conditi
-        for match in output:
-            if match['direct-match'] or match['direct_match_percentage'] > 50 or match['partial_similarity'] > 50:
-                detected['direct_match'] = True
-                break
+    #     print("scaning files")
+    #     result = scan_data.scan_file(text,DATA)
+    #     output = result
+    #     print(f"output: {output}")
+    #         # Parse the output and check conditi
+    #     for match in output:
+    #         if match['direct-match'] or match['direct_match_percentage'] > 50 or match['partial_similarity'] > 50:
+    #             detected['direct_match'] = True
+    #             break
             
-        print(f"detected: {detected}")
+    #     print(f"detected: {detected}")
             
             
     except Exception as e:
@@ -230,6 +260,9 @@ class scan_sesnitive_data:
         return sorted(matches, key=lambda x: x['partial_similarity'], reverse=True)
 
 class Clipboard():
+    def __init__(self, PATTERNS):
+        self.Patterns = PATTERNS
+
     def overwrite_and_clear_clipboard(self):
         try:
             # Use pyperclip instead of direct win32clipboard to avoid WNDPROC errors
@@ -250,8 +283,10 @@ class Clipboard():
                 except:
                     clipboard_content = ""
                     print("Error accessing clipboard")
-                
-                if clipboard_content and clipboard_content != last_clipboard_data:
+                with open("logfile.txt", 'a') as f:
+                    f.write(f"Here at content :{clipboard_content}\n")
+                if clipboard_content:
+                    log_message( level="INFO",message= f"copied content: {clipboard_content}")
                     # print(f"Clipboard content: {clipboard_content}")
                     last_clipboard_data = clipboard_content
                     
@@ -259,16 +294,18 @@ class Clipboard():
                     current_time =time.time()
                     print(f"content: {clipboard_content}")
                     # print(f"detecting sensitive data: {detect_sensitive_data(clipboard_content))}")
-                    detected = detect_sensitive_data(clipboard_content)
+                    detected = detect_sensitive_data(clipboard_content,self.Patterns)
+                    with open("logfile.txt", 'a') as f:
+                        f.write(f"Here at detection :{detected}\n")
                     if detected:
-                        screen_monitor = EnhancedDLPMonitor()
+                        with open("logfile.txt", 'a') as f:
+                            f.write(f"Here at :cleared\n")
                         self.overwrite_and_clear_clipboard()
-                        client_id,agent_id = register_client()
-                        if client_id:
-                            send_log(client_id, agent_id, "WARNING", f"sensitive data is present in: {clipboard_content} detected data: {str(detected)}")  
-                        print(f"-------Time Sensitive data detected: {time.time()-current_time} {detected}")
-                        image_path = screen_monitor.save_evidence("clipboard")
-                        print(f"Image path: {image_path}")
+                        log_message(level="WARNING",message=f"sensitive data is present in: {clipboard_content} detected data: {str(detected)}")
+                        # screen_monitor = EnhancedDLPMonitor()    
+                        # print(f"-------Time Sensitive data detected: {time.time()-current_time} {detected}")
+                        # image_path = screen_monitor.save_evidence("clipboard")
+                        # print(f"Image path: {image_path}")
                         
                 time.sleep(1)
             
@@ -278,23 +315,58 @@ class Clipboard():
 
 
 class clipboardHistory:
-    def get_clipboard_history(self):
-        # Call the PowerShell script and capture its output.
-        result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", r"monitoring\get_clipboard_history.ps1"],
-            capture_output=True, text=True)
-        if result.returncode != 0:
-            raise Exception(f"PowerShell error: {result.stderr}")
-        # Parse JSON output.
-        return json.loads(result.stdout)
+    def __init__(self, PATTERNS):
+        # Start a persistent PowerShell process that stays open.
+        # Using "-Command -" tells PowerShell to run interactively.
+        self.process = subprocess.Popen(
+            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "-"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, bufsize=1  # line-buffered
+        )
+        # Lock to avoid concurrent access to the process's pipes.
+        self.lock = threading.Lock()
+        self.Patterns = PATTERNS
 
-    def delete_clipboard_item(self,item_id):
-        result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", r"monitoring\delete_clipboard_item.ps1", "-ItemId", item_id],
-            capture_output=True, text=True)
-        if result.returncode != 0:
-            raise Exception(f"PowerShell error: {result.stderr}")
-        return result.stdout
+    def _send_command(self, command):
+        with self.lock:
+            # Write the command with a unique end marker.
+            end_marker = "<<<END_OF_COMMAND>>>"
+            self.process.stdin.write(command + f"\nWrite-Output '{end_marker}'\n")
+            self.process.stdin.flush()
+
+            # Read lines until we see the marker.
+            output_lines = []
+            while True:
+                line = self.process.stdout.readline()
+                if not line:
+                    break  # Process closed unexpectedly.
+                if end_marker in line:
+                    break
+                output_lines.append(line)
+            return "".join(output_lines)
+        
+    def get_clipboard_history(self):
+        # Build the command to run your GetClipboardItem PowerShell script.
+        command = f"& '{GET_CLIPBOARD_ITEM}'"
+        output = self._send_command(command)
+        try:
+            return json.loads(output)
+        except json.JSONDecodeError as e:
+            raise Exception(f"JSON decode error: {e}\nOutput was: {output}")
+
+
+    def delete_clipboard_item(self, item_id):
+        # Build the command to run your DeleteClipboardItem script with parameter.
+        command = f"& '{DELETE_CLIPBOARD_ITEM}' -ItemId '{item_id}'"
+        output = self._send_command(command)
+        return output
+
+    def close(self):
+        with self.lock:
+            self.process.stdin.write("exit\n")
+            self.process.stdin.flush()
+            self.process.wait()
+
 
     def monitor_clipboard_for_sensitive_data(self, interval=2):
         print(f"Starting clipboard history monitoring (checking every {interval} seconds)")
@@ -302,17 +374,26 @@ class clipboardHistory:
         while True:
             try:
                 history_items = self.get_clipboard_history()
+                if len(history_items) <= 1:
+                    print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+                    dummy_text = " "
+                    win32clipboard.OpenClipboard()
+                    win32clipboard.EmptyClipboard()  # Clears the clipboard before setting new text
+                    win32clipboard.SetClipboardText(dummy_text)
+                    win32clipboard.CloseClipboard()
+                    history_items = self.get_clipboard_history()  # Refresh history  
+ 
                 removed_count = 0
                 
                 for item in history_items:
                     if 'Text' in item and item['Text']:
-                        detected = detect_sensitive_data(item['Text'])
+                        detected = detect_sensitive_data(item['Text'],self.Patterns)
                         if detected:
-                            screen_monitor = EnhancedDLPMonitor()
+                            # screen_monitor = EnhancedDLPMonitor()
                             # Found sensitive data, remove the item
-                            print(f"Found sensitive data: {', '.join(detected.keys())}")
-                            image_path = screen_monitor.save_evidence("clipboard")
-                            print(f"Image path: {image_path}")
+                            # print(f"Found sensitive data: {', '.join(detected.keys())}")
+                            # image_path = screen_monitor.save_evidence("clipboard")
+                            # print(f"Image path: {image_path}")
                             if self.delete_clipboard_item(item['Id']):
                                 removed_count += 1
                                 show_notification("Sensitive Data Removed from history", 
@@ -351,9 +432,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     PATTERNS = json.loads(args.patterns)
     db_path = args.db_path
+    log_message( level="INFO",message=f"data patterns: {PATTERNS}")
+    os.system(f'echo "Here at {PATTERNS}  {db_path}" >> logfile.txt')
     print(f"Patterns: {PATTERNS}")
-    scan_data = scan_sesnitive_data(db_path)
-    DATA = scan_data.load_index(db_path)
+    # scan_data = scan_sesnitive_data(db_path)
+    # DATA = scan_data.load_index(db_path)
     # print(data)
     clipboard = Clipboard()
     clipboard_history = clipboardHistory()
@@ -365,5 +448,7 @@ if __name__ == "__main__":
 
     clipboard_thread.join()
     history_thread.join()
+
+
 
 

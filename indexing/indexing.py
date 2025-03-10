@@ -35,9 +35,11 @@ from gRPC.client import register_client
 from gRPC.logger import send_log
 
 def logmessage(level,message):
-    client_id,agent_id = register_client()
+    if os.path.exists("client_id.txt"):
+        with open("client_id.txt", "r") as file:
+            client_id = file.read().strip()
     if client_id:
-        send_log(client_id, agent_id,level, message)  
+       send_log(client_id, "agent-008",level,message)
 
 
 class TextExtractor:

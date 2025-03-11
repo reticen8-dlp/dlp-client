@@ -1,8 +1,7 @@
 import grpc
-import os,sys
-import policy_pb2
-import policy_pb2_grpc
-
+import gRPC.policy_pb2 as policy_pb2
+import gRPC.policy_pb2_grpc as policy_pb2_grpc
+import sys,os
 SERVER_IP = '192.168.2.62'
 SERVER_PORT = '50051'
 
@@ -22,3 +21,8 @@ def get_grpc_channel():
         trusted_certs = cert_file.read()
     credentials = grpc.ssl_channel_credentials(root_certificates=trusted_certs)
     return grpc.secure_channel(f'{SERVER_IP}:{SERVER_PORT}', credentials)
+
+
+
+
+

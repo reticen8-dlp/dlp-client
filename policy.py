@@ -18,6 +18,7 @@ import psutil
 import time
 from monitoring.clipboard_monitoring import Clipboard, clipboardHistory
 # print(Fernet.generate_key())
+CLIENT_ID_FILE = "client_id.txt"
 KEY = b'Y0jXXrE803umfYOW4mqOpWRUeaHPRMeIeNDTnMFcZ8I=' 
 cipher_suite = Fernet(KEY)
 
@@ -44,27 +45,96 @@ def resource_path(relative_path):
 DB_PATH= "Proprium_dlp.db"
 
 def logmessage(level,message):
-    if os.path.exists("client_id.txt"):
-        with open("client_id.txt", "r") as file:
-            client_id = file.read().strip()
-    else:
-        client_id,_ = register_client()            
-    if client_id:
-        send_log(client_id, "agent-008",level, message)  
+    client_id = None
+    agent_id = None
+    if os.path.exists(CLIENT_ID_FILE):
+       with open(CLIENT_ID_FILE, "r") as file:
+        lines = file.readlines()  # Read all lines
+        client_id = None
+        agent_id = None
+        for line in lines:
+            line = line.strip()
+            if line.startswith("client_id="):
+                client_id = line.split("=")[1]
+            elif line.startswith("agent_id="):
+                agent_id = line.split("=")[1]
+    if client_id is None or agent_id is None:
+        print("Warning: client_id or agent_id missing or incomplete in file. Registering new client.")
+        client_id, agent_id = register_client()
+
+    if client_id and agent_id:
+        send_log(client_id,agent_id,level, message)  
 
 def get_policy():
     policy ={}
+    client_id = None
+    agent_id = None
     """Fetch policy from the server."""
-    if os.path.exists("client_id.txt"):
-        with open("client_id.txt", "r") as file:
-            client_id = file.read().strip()
-    else:
-        client_id,_ = register_client()            
-    if client_id:
-        policy = read_policy(client_id)
+    if os.path.exists(CLIENT_ID_FILE):
+       with open(CLIENT_ID_FILE, "r") as file:
+        lines = file.readlines()  # Read all lines
+        client_id = None
+        agent_id = None
+        for line in lines:
+            line = line.strip()
+            if line.startswith("client_id="):
+                client_id = line.split("=")[1]
+            elif line.startswith("agent_id="):
+                agent_id = line.split("=")[1]
+    if client_id is None or agent_id is None:
+            print("Warning: client_id or agent_id missing or incomplete in file. Registering new client.")
+       
+            client_id, agent_id = register_client()    
+
+    if client_id and agent_id:
+        policy = read_policy(client_id,agent_id)
     else:
         print("Failed to register client or fetch policy.")
     return policy    
+
+
+def update_policy():   
+    global clipboard_thread
+    prev_policy = None
+    while(True): 
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.executescript('''
+                CREATE TABLE IF NOT EXISTS policy(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    policy TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+            ''')
+            policy = get_policy()
+            # print(f"Policy: {policy}")
+            if policy:
+                policy_str = json.dumps(policy)
+                if policy_str != prev_policy:
+                    print("Policy changed, updating...")
+                    with open('Policy.json', 'w') as f:
+                        json.dump(policy, f)
+                        print("Policy updated")
+        
+                    encrypted_policy = cipher_suite.encrypt(policy_str.encode('utf-8'))
+                    cursor = conn.cursor()
+                    try:
+                        # Store the encrypted policy (as a string) in the database.
+                        cursor.execute("INSERT INTO policy (policy) VALUES (?)", (encrypted_policy.decode('utf-8'),))
+                        conn.commit()
+                    except sqlite3.Error as e:
+                        print(f"Database error while storing data: {e}")
+                    prev_policy = policy_str
+
+                    if clipboard_thread and clipboard_thread.is_alive():
+                            print("Stopping clipboard monitoring thread...")
+                            clipboard_thread_running = False  # Signal the thread to stop
+                            clipboard_thread.join()  # Ensure it stops
+
+                    print("Restarting clipboard monitoring thread...")
+                    clipboard_thread = threading.Thread(target=run_instance.clipboard_monitoring, daemon=True)
+                    clipboard_thread.start()   
+
+        time.sleep(3)            
 
 def create_store_policy():    
     with sqlite3.connect(DB_PATH) as conn:
@@ -78,6 +148,8 @@ def create_store_policy():
         policy = get_policy()
         # print(f"Policy: {policy}")
         if policy:
+            with open('Policy.json', 'w') as f:
+                json.dump(policy, f)
             policy_str = json.dumps(policy)
     
             encrypted_policy = cipher_suite.encrypt(policy_str.encode('utf-8'))
@@ -115,6 +187,9 @@ print("start")
 POLICY = fetch_decrypted_policy()
 
 # print(f"Policy: {POLICY}")
+
+
+
 def create_sensitive_table():
     """Initialize SQLite database with optimized schema"""
     with sqlite3.connect(DB_PATH) as conn:
@@ -216,8 +291,8 @@ def store_patterns(policies=POLICY):
 
 
 PATTERNS = store_patterns()
-with open('Policy.json', 'w') as f:
-    json.dump(POLICY, f)
+# with open('Policy.json', 'w') as f:
+#     json.dump(POLICY, f)
 print(f" in policy : {POLICY}  paterns are {PATTERNS}")
 
 
@@ -240,9 +315,9 @@ DIRECTORIES = list_main_storage_locations()
 print(f"Directories: {DIRECTORIES}")  
 
 class Run():
-    def __init__(self, policy=POLICY, patterns=PATTERNS,directories=DIRECTORIES):
+    def __init__(self, policy=fetch_decrypted_policy(),directories=DIRECTORIES):
         self.policy = policy
-        self.patterns = patterns
+        self.patterns = store_patterns(policy)
         self.directories = directories
         # Process handles for indexing tasks
         self.indexing_process = None
@@ -280,8 +355,11 @@ class Run():
         print("Starting clipboard monitoring...")
 
         try:
-            clipboard = Clipboard(PATTERNS)
-            clipboard_history = clipboardHistory(PATTERNS)
+            pol = fetch_decrypted_policy()
+            pattern = store_patterns(pol)
+            print(f"patterns {pattern}")
+            clipboard = Clipboard(pattern)
+            clipboard_history = clipboardHistory(pattern)
 
             clipboard_thread = threading.Thread(target=clipboard.monitor_clipboard_content, daemon=True)
             history_thread = threading.Thread(target=clipboard_history.monitor_clipboard_for_sensitive_data, daemon=True)
@@ -303,7 +381,7 @@ class Run():
             indexing_script, "indexing",
             "--db_path", DB_PATH,
             "--directories", json.dumps(self.directories),
-            "--patterns", json.dumps(PATTERNS)
+            "--patterns", json.dumps(self.patterns)
         ]
         # Launch indexing as a subprocess so that it can be terminated later
         self.indexing_process = subprocess.Popen(new_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -321,7 +399,7 @@ class Run():
             indexing_script, "maintain",
             "--db_path", DB_PATH,
             "--directories", json.dumps(self.directories),
-            "--patterns", json.dumps(PATTERNS)
+            "--patterns", json.dumps(self.patterns)
         ]
         self.maintain_process = subprocess.Popen(new_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = self.maintain_process.communicate()
@@ -388,11 +466,14 @@ def monitor_directories(run_instance, poll_interval=10):
 
 
 if __name__ == "__main__":
+    clipboard_thread = None
     print("Starting DLP Agent...")
     run_instance = Run()
 
     # Create threads for each task
+    policy_thread = threading.Thread(target=update_policy, daemon=True)
     disk_thread = threading.Thread(target=run_instance.Disk_Control, daemon=True)
+    clipboard_thread_running = True
     clipboard_thread = threading.Thread(target=run_instance.clipboard_monitoring, daemon=True)
     # indexing_thread = threading.Thread(target=run_instance.Indexing, daemon=True)
     # maintain_thread = threading.Thread(target=run_instance.maintain_indexing, daemon=True)
@@ -401,6 +482,7 @@ if __name__ == "__main__":
     # Start all threads
     disk_thread.start()
     clipboard_thread.start()
+    policy_thread.start()
     # indexing_thread.start()
     # maintain_thread.start()
     # monitor_thread.start()
@@ -553,5 +635,3 @@ if __name__ == "__main__":
 # 1)policy update automatic 2) hide processes 3) hide exe and files 4) no * and C:\\ to block
 
 #  pyinstaller --clean --onefile --add-data "Agent;Agent" --add-data "gRPC/keys/server.crt;gRPC/keys" --add-data "Policy.json;Policy.json" --add-data "gRPC;gRPC" --add-data "indexing;indexing" --add-data "monitoring;monitoring" --add-data "screencapturing;screencapturing" --add-data "sensitivepermissions;sensitivepermissions" --add-data "system;system" --add-data "uploads;uploads" --name="Reticen8-DLP" --hidden-import="grpcio" --hidden-import="grpcio-tools" --hidden-import="protobuf" --hidden-import="magic" --hidden-import="pptx" --hidden-import="pdfminer" --hidden-import="pdfminer.high_level" --hidden-import="pdf2image" --hidden-import="docx" --hidden-import="watchdog" --hidden-import="watchdog.observers" --hidden-import="watchdog.events" --hidden-import="PIL" --hidden-import="PIL.Image" --hidden-import="cv2" --hidden-import="numpy" --hidden-import="pandas" --hidden-import="sqlite3" --hidden-import="win32gui_struct" --hidden-import="queue" --hidden-import="logging" --hidden-import="tempfile" --hidden-import="json" --hidden-import="csv" --hidden-import="pyperclip" --hidden-import="win32clipboard" --hidden-import="uuid" --hidden-import="winreg" --hidden-import="ctypes" --hidden-import="ctypes.wintypes" --hidden-import="difflib" --hidden-import="win10toast" --hidden-import="win32con" --hidden-import="win32api" --hidden-import="win32gui" --hidden-import="threading" --hidden-import="datetime" --collect-all "easyocr" --collect-all "concurrent.futures" --collect-all "win32com" --collect-all "pyperclip" --collect-all "psutil" --collect-all "psutil" --collect-all "win10toast" --version-file=version_info.txt policy.py
-
-

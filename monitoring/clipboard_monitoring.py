@@ -35,16 +35,27 @@ from gRPC.client import register_client
 from gRPC.logger import send_log
 
 CLSCTX_ALL = 0x00000001 + 0x00000002 + 0x00000004
-
+CLIENT_ID_FILE = "client_id.txt"
 def log_message(level,message):
-    if os.path.exists("client_id.txt"):
-        with open("client_id.txt", "r") as file:
-            client_id = file.read().strip()
-    else:
-        client_id,_ = register_client()    
-    os.system(f'echo "Here at client {client_id}" >> logfile.txt')            
-    if client_id:
-        send_log(client_id, "agent-008",level, message)  
+    client_id = None
+    agent_id = None
+    if os.path.exists(CLIENT_ID_FILE):
+       with open(CLIENT_ID_FILE, "r") as file:
+        lines = file.readlines()  # Read all lines
+        client_id = None
+        agent_id = None
+        for line in lines:
+            line = line.strip()
+            if line.startswith("client_id="):
+                client_id = line.split("=")[1]
+            elif line.startswith("agent_id="):
+                agent_id = line.split("=")[1]
+    if client_id is None or agent_id is None:
+        # print("Warning: client_id or agent_id missing or incomplete in file. Registering new client.")
+        client_id, agent_id = register_client()
+
+    if client_id and agent_id:
+        send_log(client_id,agent_id,level, message)  
                         
 def resource_path(relative_path):
     try:
@@ -119,8 +130,8 @@ def detect_sensitive_data(text, PATTERNS):
     detected = {}
     
     try:
-        print("PATTERNS keywords:", PATTERNS["keywords"],PATTERNS["regex"])
-        print("Text being analyzed:", text)
+        # print("PATTERNS keywords:", PATTERNS["keywords"],PATTERNS["regex"])
+        # print("Text being analyzed:", text)
         
         # Search using regex patterns
         if isinstance(PATTERNS, dict) and "regex" in PATTERNS and "keywords" in PATTERNS:
@@ -145,8 +156,8 @@ def detect_sensitive_data(text, PATTERNS):
                         keyword_matches = [kw for kw in keywords if kw in text]
                         if keyword_matches:
                             detected[category] = detected.get(category, []) + keyword_matches
-        print(f"detected: {detected}")
-        os.system(f'echo "Here at detected: {detected}" >> logfile.txt')
+        # print(f"detected: {detected}")
+        # os.system(f'echo "Here at detected: {detected}" >> logfile.txt')
         # result = subprocess.run([sys.executable , "sensitivepermissions/file_fingerprinting.py","scan","--text",text,"--db","Proprium_dlp.db"], capture_output=True, text=True, encoding="utf-8")
         # output = result.stdout
     #     print("scaning files")
@@ -283,23 +294,16 @@ class Clipboard():
                 except:
                     clipboard_content = ""
                     print("Error accessing clipboard")
-                with open("logfile.txt", 'a') as f:
-                    f.write(f"Here at content :{clipboard_content}\n")
                 if clipboard_content:
-                    log_message( level="INFO",message= f"copied content: {clipboard_content}")
+                    # log_message( level="INFO",message= f"copied content: {clipboard_content}")
                     # print(f"Clipboard content: {clipboard_content}")
                     last_clipboard_data = clipboard_content
                     
                     # Check for sensitive data in current clipboard
                     current_time =time.time()
-                    print(f"content: {clipboard_content}")
                     # print(f"detecting sensitive data: {detect_sensitive_data(clipboard_content))}")
                     detected = detect_sensitive_data(clipboard_content,self.Patterns)
-                    with open("logfile.txt", 'a') as f:
-                        f.write(f"Here at detection :{detected}\n")
                     if detected:
-                        with open("logfile.txt", 'a') as f:
-                            f.write(f"Here at :cleared\n")
                         self.overwrite_and_clear_clipboard()
                         log_message(level="WARNING",message=f"sensitive data is present in: {clipboard_content} detected data: {str(detected)}")
                         # screen_monitor = EnhancedDLPMonitor()    
@@ -369,13 +373,12 @@ class clipboardHistory:
 
 
     def monitor_clipboard_for_sensitive_data(self, interval=2):
-        print(f"Starting clipboard history monitoring (checking every {interval} seconds)")
+        # print(f"Starting clipboard history monitoring (checking every {interval} seconds)")
         
         while True:
             try:
                 history_items = self.get_clipboard_history()
                 if len(history_items) <= 1:
-                    print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
                     dummy_text = " "
                     win32clipboard.OpenClipboard()
                     win32clipboard.EmptyClipboard()  # Clears the clipboard before setting new text
@@ -432,9 +435,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     PATTERNS = json.loads(args.patterns)
     db_path = args.db_path
-    log_message( level="INFO",message=f"data patterns: {PATTERNS}")
-    os.system(f'echo "Here at {PATTERNS}  {db_path}" >> logfile.txt')
-    print(f"Patterns: {PATTERNS}")
+    # log_message( level="INFO",message=f"data patterns: {PATTERNS}")
+    # os.system(f'echo "Here at {PATTERNS}  {db_path}" >> logfile.txt')
+    # print(f"Patterns: {PATTERNS}")
     # scan_data = scan_sesnitive_data(db_path)
     # DATA = scan_data.load_index(db_path)
     # print(data)
@@ -448,7 +451,6 @@ if __name__ == "__main__":
 
     clipboard_thread.join()
     history_thread.join()
-
 
 
 

@@ -15,26 +15,26 @@ service LogService {  // NEW SERVICE for logging
 // Client Registration
 message ClientRequest {
     string client_id = 1;
+    string agent_id = 2;
 }
 
 message ClientDetails {
-    string agent_id = 1;
-    string device_name = 2;
-    string os_version = 3;
-    string username = 4;
+    string device_name = 1;
+    string os_version = 2;
+    string username = 3;
 }
 
 message ClientResponse {
     string status = 1;
     string message = 2;
     string client_id = 3;
+    string agent_id = 4;
 }
 
 message GetClientDetailsResponse {
-    string agent_id = 1;
-    string device_name = 2;
-    string os_version = 3;
-    string username = 4;
+    string device_name = 1;
+    string os_version = 2;
+    string username = 3;
 }
 
 // Policy Retrieval

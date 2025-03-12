@@ -18,8 +18,62 @@
 #include <conio.h>
 #include <regex>
 #include <atomic>
+// #include <libsqlite3/sqlite3.h>
+// #include <cryptlib.h>
+// #include <aes.h>
+// #include <filters.h>
+// #include <modes.h>
+// #include <base64.h>
+// using namespace CryptoPP;
 #include "nlohmann/json.hpp" // JSON library folder (included as a separate folder)
 
+// const string DB_PATH = "Proprium_dlp.db";
+// const byte AES_KEY[32] = "Y0jXXrE803umfYOW4mqOpWRUeaHPRMeIeNDTnMFcZ8I=";
+
+// string base64_decode(const string& encoded) {
+//     string decoded;
+//     StringSource(encoded, true, new Base64Decoder(new StringSink(decoded)));
+//     return decoded;
+// }
+// // AES-256-CBC decryption function
+// string decrypt_aes(const string& encrypted) {
+//     string decoded = base64_decode(encrypted);
+
+//     byte iv[AES::BLOCKSIZE];
+//     memcpy(iv, decoded.data(), AES::BLOCKSIZE);  // Extract IV
+//     string cipher_text = decoded.substr(AES::BLOCKSIZE);
+
+//     string decrypted;
+//     CBC_Mode<AES>::Decryption decryptor;
+//     decryptor.SetKeyWithIV(AES_KEY, sizeof(AES_KEY), iv);
+
+//     StringSource(cipher_text, true,
+//         new StreamTransformationFilter(decryptor,
+//             new StringSink(decrypted),
+//             BlockPaddingSchemeDef::PKCS_PADDING)
+//     );
+
+//     return decrypted;
+// }
+
+// // Fetch encrypted data from SQLite and decrypt it
+// void fetch_and_decrypt_policy() {
+//     sqlite3* db;
+//     sqlite3_stmt* stmt;
+//     string sql = "SELECT policy FROM policy ORDER BY timestamp DESC LIMIT 1;";
+
+//     if (sqlite3_open(DB_PATH.c_str(), &db) == SQLITE_OK) {
+//         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+//             if (sqlite3_step(stmt) == SQLITE_ROW) {
+//                 string encrypted_data = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+//                 string decrypted_data = decrypt_aes(encrypted_data);
+//                 cout << "Decrypted Policy: " << decrypted_data << endl;
+//             }
+//         }
+//         sqlite3_finalize(stmt);
+//         sqlite3_close(db);
+//     }
+// }
 // Create an alias for the JSON library
 using json = nlohmann::json;
 json lastValidPolicy;
@@ -817,10 +871,12 @@ void enforceDriveLockPolicy(const json& policyData, const vector<wstring>& avail
 // Modified runPolicyEnforcementLoop function
 
 // Modified runPolicyEnforcementLoop function
-void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availableDrives, atomic<bool>& stopFlag,const string& policyId) {
+void runPolicyEnforcementLoop(int intervalSeconds, const vector<wstring>& availableDrives, atomic<bool>& stopFlag,const string& policyId,const json& policyData) {
     while (!stopFlag.load()) {// Keep running until stopFlag becomes true
-        json policies = LoadDriveLockPolicy(); 
-        // cout<< "Policy Data: "<<policyData<<endl;
+        // string decrypted_data = fetch_decrypted_policy();
+        // json policies = json::parse(decrypted_data);
+        json policies = policyData;
+       
         
         vector<wstring> AvailableRemovableDrives;
         

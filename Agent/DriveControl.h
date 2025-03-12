@@ -38,5 +38,5 @@ bool ReadOnlyAccess(const std::wstring& drive, bool restrict);
 std::wstring GetDriveLabel(const std::wstring& drive);
 void MonitorDriveChanges();
 void enforceDriveLockPolicy(const json& policyData, const std::vector<std::wstring>& availableDrives, const std::vector<std::wstring>& availableRemovableDrives);
-void runPolicyEnforcementLoop(int intervalSeconds, const std::vector<std::wstring>& availableDrives, std::atomic<bool>& stopFlag, const std::string& policyId);
+void runPolicyEnforcementLoop(int intervalSeconds, const std::vector<std::wstring>& availableDrives, std::atomic<bool>& stopFlag, const std::string& policyId,const nlohmann::json& policyData);
 void ShowNotification(const wchar_t* title, const wchar_t* message);

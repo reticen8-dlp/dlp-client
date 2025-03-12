@@ -1,84 +1,120 @@
-# this script is used to import the schedules data from the database and then save them in a json file named schedules.json
-# the script uses psycopg2 library to connect to the database and fetch the data
-
-import psycopg2
+import subprocess
 import json
-from datetime import datetime
 
-# Database connection details
-DB_HOST = "192.168.2.62"
-DB_NAME = "dlp_new"
-DB_USER = "postgres"
-DB_PASSWORD = "root"
-TABLE_NAME = "general_scheduler"
+# JSON data as a Python dictionary
+json_data = [
+    {
+        "policy_id": "1b793657-742b-461f-8h11-6362f2e82987",
+        "name": "Block File Upload",
+        "description": "Prevents file uploads via browsers",
+        "status": "Active",
+        "severity": "High",
+        "patterns": [
+          {
+            "id": "f18cd3e2-a867-40be-9937-26d92c28a79c",
+            "name": "test",
+            "type": {
+              "keywords": ["bomb", "attack"],
+              "regex": [
+                "b(?P<card>(?:\\\\d{4}[- ]?){4})\\\\b",
+                "serfresdf",
+                "aerrfserfgse",
+                "aewfserf",
+                "erfser"
+              ],
+              "ML": []
+            }
+          }
+        ],
+        "files": [],
+        "action": {
+          "channel_action": {
+            "network_channels": {
+              "Email": {
+                "action": "Allow",
+                "included": ["network", "channel"],
+                "excluded": ["email", "excluded"]
+              },
+              "FTP": {
+                "action": "Block",
+                "included": ["ftp", "channel"],
+                "excluded": ["ftp", "excluded"]
+              },
+              "HTTP/S": {
+                "action": "Allow",
+                "included": ["abcd"],
+                "excluded": ["efgh"]
+              },
+              "Chat": {
+                "action": "Block",
+                "included": ["ijkl"],
+                "excluded": ["mnop"]
+              },
+              "Plaintext": {
+                "action": "Allow",
+                "included": ["qrstuv", "bbhdia"],
+                "excluded": ["dakdfkal", "dfdkla"]
+              }
+            },
+            "endpoint_channels": {
+              "Apps": {
+                "action": "Block",
+                "included": ["dhjkl"],
+                "excluded": ["dfghjk"]
+              },
+              "RemovableDrives": {
+                "action": "Block",
+                "included": ["*"],
+                "excluded": [""]
+              },
+              "LocalDrives": {
+                "action": "Allow",
+                "included": ["D:\\"],
+                "excluded": [""]
+              },
+              "Directories": {
+                "action": "Allow",
+                "included": ["qwertyu"],
+                "excluded": ["vghjkl"]
+              },
+              "LAN": {
+                "action": "Block",
+                "included": ["dfghjk"],
+                "excluded": ["cvbnm"]
+              },
+              "Bluetooth": { "action": "Block", "included": ["*"], "excluded": [] }
+            }
+          },
+          "schedule": {
+            "id": "7a36fc8d-e8cc-4942-9510-21f7dc785711",
+            "cron_expression": None,
+            "recurrence": "Weekly",
+            "start_time": "2025-02-20T09:54:00",
+            "end_time": "2025-02-20T17:53:00",
+            "days_of_week": ["Monday","Tuesday" ,"Wednesday", "Thursday", "Saturday"]
+          }
+        }
+      }
+  ]
 
-# Custom JSON serializer for datetime
-def json_serializer(obj):
-    if isinstance(obj, datetime):
-        return obj.isoformat()
-    raise TypeError(f"Type {type(obj)} not serializable")
+# Convert to JSON string
+json_string = json.dumps(json_data)
 
-# Database connection helper
-def get_db_connection():
-    return psycopg2.connect(
-        host=DB_HOST,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD
+# Path to your C++ executable
+exe_path = "DiskControl.exe"
+
+# Run the C++ executable and pass JSON data via stdin
+try:
+    result = subprocess.run(
+        [exe_path],
+        input=json_string,         # JSON data as input
+        text=True,                 # Ensure input/output is treated as text
+        capture_output=True        # Capture stdout and stderr
     )
 
-# Fetch the latest schedule by recurrence type
-def get_latest_schedule(recurrence_type):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+    # Print the output from the C++ executable
+    print("Output:", result.stdout)
+    print("Errors:", result.stderr)
 
-        # Adjust query to properly fetch 'cron' schedules when recurrence is NULL
-        if recurrence_type is None:
-            query = f"""
-                SELECT * FROM {TABLE_NAME}
-                WHERE recurrence IS NULL
-                ORDER BY updated_at DESC
-                LIMIT 1;
-            """
-        else:
-            query = f"""
-                SELECT * FROM {TABLE_NAME}
-                WHERE recurrence = %s
-                ORDER BY updated_at DESC
-                LIMIT 1;
-            """
-
-        cursor.execute(query, (recurrence_type,) if recurrence_type else ())
-        row = cursor.fetchone()
-
-        if row:
-            colnames = [desc[0] for desc in cursor.description]
-            return dict(zip(colnames, row))
-        else:
-            print(f"No {recurrence_type if recurrence_type else 'cron'} schedule found.")
-            return None
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
-
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
-
-def save_schedules_to_file():
-    schedules = {
-        "weekly": get_latest_schedule("Weekly"),
-        "daily": get_latest_schedule("Daily"),
-        "cron": get_latest_schedule(None)
-    }
-    with open("schedules.json", "w") as f:
-        json.dump(schedules, f, default=json_serializer, indent=4)
-    print("Schedules saved to schedules.json")
-
-if __name__ == "__main__":
-    save_schedules_to_file()
+except Exception as e:
+    print(f"Failed to run {exe_path}: {e}")

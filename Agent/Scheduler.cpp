@@ -12,11 +12,63 @@
 #include "nlohmann/json.hpp"
 #include "DriveControl.h" // Assuming DriveControl.h has related declarations of function from DriveControl.cpp
 #include <atomic>
-
-
+// #include <libsqlite3/sqlite3.h>
+// #include <cryptlib.h>
+// #include <aes.h>
+// #include <filters.h>
+// #include <modes.h>
+// #include <base64.h>
+// using namespace CryptoPP;
 using namespace std;
 using json = nlohmann::json;
 
+// const string DB_PATH = "Proprium_dlp.db";
+// const byte AES_KEY[32] = "Y0jXXrE803umfYOW4mqOpWRUeaHPRMeIeNDTnMFcZ8I=";
+
+// string base64_decode(const string& encoded) {
+//     string decoded;
+//     StringSource(encoded, true, new Base64Decoder(new StringSink(decoded)));
+//     return decoded;
+// }
+// // AES-256-CBC decryption function
+// string decrypt_aes(const string& encrypted) {
+//     string decoded = base64_decode(encrypted);
+
+//     byte iv[AES::BLOCKSIZE];
+//     memcpy(iv, decoded.data(), AES::BLOCKSIZE);  // Extract IV
+//     string cipher_text = decoded.substr(AES::BLOCKSIZE);
+
+//     string decrypted;
+//     CBC_Mode<AES>::Decryption decryptor;
+//     decryptor.SetKeyWithIV(AES_KEY, sizeof(AES_KEY), iv);
+
+//     StringSource(cipher_text, true,
+//         new StreamTransformationFilter(decryptor,
+//             new StringSink(decrypted),
+//             BlockPaddingSchemeDef::PKCS_PADDING)
+//     );
+
+//     return decrypted;
+// }
+
+// // Fetch encrypted data from SQLite and decrypt it
+// void fetch_and_decrypt_policy() {
+//     sqlite3* db;
+//     sqlite3_stmt* stmt;
+//     string sql = "SELECT policy FROM policy ORDER BY timestamp DESC LIMIT 1;";
+
+//     if (sqlite3_open(DB_PATH.c_str(), &db) == SQLITE_OK) {
+//         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+//             if (sqlite3_step(stmt) == SQLITE_ROW) {
+//                 string encrypted_data = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+//                 string decrypted_data = decrypt_aes(encrypted_data);
+//                 cout << "Decrypted Policy: " << decrypted_data << endl;
+//             }
+//         }
+//         sqlite3_finalize(stmt);
+//         sqlite3_close(db);
+//     }
+// }
 // Global variables
 json lastValidSchedule;
 bool serviceRunning = false;
@@ -186,62 +238,7 @@ vector<wstring> getDrivesToReset(
     return drivesToReset;
 }
 
-// void schedulerLoop(const string& scheduleFile, int checkInterval) {
-//     while (true) {
-//         //print the current time here
-//         time_t now = chrono::system_clock::to_time_t(chrono::system_clock::now());
-//         tm localTime;
-//         localtime_s(&localTime, &now);
-//         char currentTime[6];
-//         strftime(currentTime, sizeof(currentTime), "%H:%M", &localTime);
-//         cout << "Current Time: " << currentTime << endl;
-
-//         json scheduleData = loadSchedulerData(scheduleFile);
-//         // cout << "Checking schedule..." << scheduleData <<endl;
-//         if (!scheduleData.empty() && scheduleData != lastValidSchedule) {
-//             lastValidSchedule = scheduleData;
-//         }
-//         string recurrenceType;
-//         auto [startTime, endTime] = determineSchedule(lastValidSchedule, recurrenceType);
-//         cout<< "Start Time: "<<startTime<<endl;
-//         cout<< "End Time: "<<endTime<<endl;
-
-//         if (startTime.empty() || endTime.empty()) {
-//             this_thread::sleep_for(chrono::seconds(checkInterval));
-//             cout << "Invalid schedule data. Skipping..." << endl;
-//             continue;
-//         }
-//         vector<wstring> availableDrives = ListAvailableDrives();
-//         for(const auto& drive : availableDrives){
-//             wcout<< "Available Drive: "<<drive<<endl;
-//         }
-
-//         if (isTimeInRange(startTime, endTime) && !serviceRunning) {
-//             cout << "Starting service: " << recurrenceType << " schedule" << endl;
-//             stopEnforcement = false; // Reset the flag when starting
-//             thread(runPolicyEnforcementLoop, 5, availableDrives, ref(stopEnforcement)).detach();
-//             serviceRunning = true;
-//         } else if (!isTimeInRange(startTime, endTime) && serviceRunning) {
-//             vector<wstring> AllDrives;
-//             for (const auto& drive : removableDrives) {
-//                 // wcout<< "Removable Drive: "<<drive.second.letter<<endl;
-//                 AllDrives.push_back(drive.second.letter + L":\\");
-//             }
-//             for(const auto& drive :availableDrives){
-//                 AllDrives.push_back(drive);
-//             }
-//             for (const auto& drive : AllDrives) {
-//                 ModifyDriveAccess(drive, false);
-//             }
-//             stopEnforcement = true; // Signal the thread to stop
-//             cout << "Stopping service..." << endl;
-//             serviceRunning = false;
-//         }
-
-//         this_thread::sleep_for(chrono::seconds(checkInterval));
-//     }
-// }
-void schedulerLoop(const string& scheduleFile, int checkInterval) {
+void schedulerLoop(json &scheduleData,int checkInterval) {
     while (true) {
         // Print the current time.
         time_t now = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -251,7 +248,9 @@ void schedulerLoop(const string& scheduleFile, int checkInterval) {
         strftime(currentTime, sizeof(currentTime), "%H:%M", &localTime);
         cout << "Current Time: " << currentTime << endl;
 
-        json scheduleData = loadSchedulerData(scheduleFile);
+        // json scheduleData = loadSchedulerData(scheduleFile);
+        // string decrypted_data = fetch_decrypted_policy();
+        // json scheduleData = json::parse(decrypted_data);
         if (scheduleData.empty() || !scheduleData.is_array()) {
             cout << "No schedule data available." << endl;
             this_thread::sleep_for(chrono::seconds(checkInterval));
@@ -288,7 +287,7 @@ void schedulerLoop(const string& scheduleFile, int checkInterval) {
                     cout << "Starting service for policy " << policyId << " (" << recurrenceType << " schedule)" << endl;
                     // Reset the stop flag for this policy.
                     getStopFlagForPolicy(policyId) = false;
-                    thread(runPolicyEnforcementLoop, 5, availableDrives, ref(getStopFlagForPolicy(policyId)), policyId).detach();
+                    thread(runPolicyEnforcementLoop, 5, availableDrives, std::ref(getStopFlagForPolicy(policyId)), policyId,scheduleData).detach();
                     setServiceRunningForPolicy(policyId, true);
                 }
                 // Otherwise, if not in time range and service is running, stop enforcement.
@@ -350,8 +349,21 @@ void schedulerLoop(const string& scheduleFile, int checkInterval) {
 
 
 
-int main() {
-    const string scheduleFile = "Policy.json";
-    schedulerLoop(scheduleFile, 60);
-    return 0;
-}
+    int main() {
+        string input;
+        string line;
+    
+        while (getline(cin, line)) {
+            input += line + "\n"; 
+        }
+    
+        try {
+            json jsonData = json::parse(input);
+            schedulerLoop(jsonData, 60);
+        } catch (json::parse_error& e) {
+            cerr << "Failed to parse JSON: " << e.what() << endl;
+            return 1;
+        }
+    
+        return 0;
+    }

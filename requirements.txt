@@ -11,7 +11,7 @@ docx2txt==0.8
 easyocr==1.7.2
 idna==3.10
 imageio==2.37.0
-Jinja2==3.1.5
+Jinja2==3.1.6
 Levenshtein==0.26.1
 ninja==1.11.1.3c
 numpy==2.2.2

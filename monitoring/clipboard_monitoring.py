@@ -28,6 +28,7 @@ import win32gui_struct
 # import pywintypes
 from datetime import datetime
 import sys,os
+from winotify import Notification
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from screencapturing.capturingfast import EnhancedDLPMonitor
 
@@ -71,11 +72,19 @@ GET_CLIPBOARD_ITEM = resource_path(os.path.join("monitoring", "get_clipboard_his
 def show_notification(title, message):
 
     try:
-        toaster = ToastNotifier()
-        toaster.show_toast(title, message, duration=1, threaded=True)
-        return
+        # Create notification without icon first to test basic functionality
+        toast = Notification(
+            app_id="PROPRIUM-DLP",
+            title=title,
+            msg=message,
+            # icon=r"favicon.png"
+        )
+        
+        toast.show()
+        return True
     except Exception as e:
-        print(f"win10toast notification failed: {e}")
+        print(f"Notification failed: {e}")
+       
 
 
     """Display a Windows notification in the system tray"""
